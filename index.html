@@ -1069,7 +1069,7 @@ function habitCard(h){
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
       <span style="font-size:12px;color:var(--txt-3)">${streakOf(h)} dias seguidos</span>
-      ${h.notifEnabled&&h.notifTime?`<span style="font-size:11px;color:var(--amber);font-weight:700;display:flex;align-items:center;gap:3px;margin-left:auto">🔔 ${h.notifTime}</span>`:''}
+      <button onclick="openHabit(${h.id})" style="font-size:11px;font-weight:600;margin-left:auto;padding:2px 7px;border-radius:8px;border:1px solid ${h.notifEnabled&&h.notifTime?'rgba(255,194,77,.35)':'var(--line)'};color:${h.notifEnabled&&h.notifTime?'var(--amber)':'var(--txt-3)'};background:none;cursor:pointer" title="${h.notifEnabled&&h.notifTime?'Lembrete: '+h.notifTime:'Configurar lembrete'}">${h.notifEnabled&&h.notifTime?'🔔 '+h.notifTime:'🔔 Lembrete'}</button>
     </div>
     <div class="habit-grid">${days.map(c=>`<span class="hc ${c}"></span>`).join('')}</div></div>`;
 }
@@ -2358,17 +2358,30 @@ function ttsStop(){
 /* ADICIONAR E-BOOK */
 let _ebookRawText='';
 function openAddEbook(){
-  _ebookRawText='';
+  _ebookRawText='';_pdfText='';
   modal(`
   <h3>📖 Adicionar meu e-book</h3>
-  <p class="ms">Cole o conteúdo — a IA organiza, estrutura e cria análise automaticamente</p>
-  <div style="display:flex;gap:8px;margin-bottom:14px">
+  <p class="ms">Cole o conteúdo ou envie um PDF — a IA organiza, estrutura e cria análise automaticamente</p>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
     <button id="tabFmt" class="ficha-tab active" onclick="switchEbookTab('fmt')">✏️ Texto formatado</button>
     <button id="tabRaw" class="ficha-tab" onclick="switchEbookTab('raw')">📝 Texto bruto</button>
+    <button id="tabPdf" class="ficha-tab" onclick="switchEbookTab('pdf')">📄 PDF</button>
   </div>
   <div id="tabFmtHint" style="font-size:12.5px;color:var(--txt-3);margin-bottom:8px">Texto já com capítulos, tópicos e estrutura definida.</div>
   <div id="tabRawHint" style="font-size:12.5px;color:var(--txt-3);margin-bottom:8px;display:none">Texto corrido sem estrutura — a IA vai organizar tudo.</div>
+  <div id="tabPdfHint" style="font-size:12.5px;color:var(--txt-3);margin-bottom:8px;display:none">Selecione o arquivo PDF do livro — o texto é extraído automaticamente.</div>
   <textarea class="input" id="ebookText" rows="11" placeholder="Cole aqui o conteúdo do e-book…" style="resize:vertical;line-height:1.6;font-size:13.5px"></textarea>
+  <div id="pdfInputWrap" style="display:none">
+    <div id="pdfDropArea" onclick="document.getElementById('pdfFileInput').click()"
+      style="border:2px dashed var(--line-2);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:.2s"
+      onmouseenter="this.style.borderColor='var(--accent-2)'" onmouseleave="this.style.borderColor='var(--line-2)'">
+      <div style="font-size:40px;margin-bottom:10px">📄</div>
+      <div style="font-weight:600;color:var(--txt-2);margin-bottom:4px">Clique para selecionar o PDF</div>
+      <div style="font-size:12px;color:var(--txt-3)">Suporta qualquer PDF com texto</div>
+      <div id="pdfFileName" style="color:var(--accent-2);margin-top:10px;font-size:13px;font-weight:600"></div>
+    </div>
+    <input type="file" id="pdfFileInput" accept=".pdf" style="display:none" onchange="loadPdf(this)">
+  </div>
   <div id="ebookStatus" style="min-height:20px;margin-top:8px;font-size:12.5px;color:var(--txt-3)"></div>
   <div class="modal-foot" style="margin-top:6px">
     <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -2376,16 +2389,61 @@ function openAddEbook(){
   </div>`);
 }
 let _ebookTab='fmt';
+let _pdfText='';
 function switchEbookTab(t){
   _ebookTab=t;
-  document.getElementById('tabFmt').classList.toggle('active',t==='fmt');
-  document.getElementById('tabRaw').classList.toggle('active',t==='raw');
+  ['Fmt','Raw','Pdf'].forEach(x=>document.getElementById('tab'+x)?.classList.toggle('active',t===x.toLowerCase()));
   document.getElementById('tabFmtHint').style.display=t==='fmt'?'block':'none';
   document.getElementById('tabRawHint').style.display=t==='raw'?'block':'none';
+  document.getElementById('tabPdfHint').style.display=t==='pdf'?'block':'none';
+  const ta=document.getElementById('ebookText');
+  const pw=document.getElementById('pdfInputWrap');
+  if(ta)ta.style.display=t==='pdf'?'none':'block';
+  if(pw)pw.style.display=t==='pdf'?'block':'none';
+}
+async function loadPdf(input){
+  const file=input.files[0];if(!file)return;
+  const nameEl=document.getElementById('pdfFileName');
+  const status=document.getElementById('ebookStatus');
+  if(nameEl)nameEl.textContent='📄 '+file.name;
+  if(status)status.textContent='⏳ Extraindo texto do PDF…';
+  try{
+    if(!window.pdfjsLib){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload=res;s.onerror=rej;document.head.appendChild(s);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    const arr=await file.arrayBuffer();
+    const pdf=await window.pdfjsLib.getDocument({data:arr}).promise;
+    let text='';
+    const maxP=Math.min(pdf.numPages,80);
+    for(let i=1;i<=maxP;i++){
+      const page=await pdf.getPage(i);
+      const c=await page.getTextContent();
+      text+=c.items.map(s=>s.str).join(' ')+'\n';
+    }
+    _pdfText=text.trim();
+    const extra=pdf.numPages>80?' (primeiras 80 págs)':'';
+    if(status)status.textContent=`✅ PDF lido — ${pdf.numPages} página(s)${extra} · ${_pdfText.length.toLocaleString('pt-BR')} caracteres extraídos`;
+    const drop=document.getElementById('pdfDropArea');
+    if(drop)drop.style.borderColor='var(--green)';
+  }catch(e){
+    if(status)status.textContent='Erro ao ler PDF: '+e.message;
+    toast('Erro ao ler PDF','⚠️');
+  }
 }
 async function processEbook(){
-  const text=document.getElementById('ebookText')?.value.trim();
-  if(!text||text.length<50){toast('Cole algum conteúdo primeiro','⚠️');return;}
+  let text;
+  if(_ebookTab==='pdf'){
+    if(!_pdfText||_pdfText.length<50){toast('Selecione um PDF e aguarde a extração','⚠️');return;}
+    text=_pdfText;
+  }else{
+    text=document.getElementById('ebookText')?.value.trim();
+    if(!text||text.length<50){toast('Cole algum conteúdo primeiro','⚠️');return;}
+  }
   const btn=document.getElementById('ebookProcessBtn');
   const status=document.getElementById('ebookStatus');
   if(btn){btn.disabled=true;btn.textContent='⏳ Processando…';}
