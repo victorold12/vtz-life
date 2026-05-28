@@ -1734,40 +1734,93 @@ function speak(text){
    SHAPE — OLHO DO TOJI
    ================================================================= */
 function viewShape(m){
-  const result=JSON.parse(localStorage.getItem('vtz_shape_result')||'null');
+  const shapeResult=JSON.parse(localStorage.getItem('vtz_shape_result')||'null');
+  const pratoResult=JSON.parse(localStorage.getItem('vtz_prato_result')||'null');
   m.innerHTML=`
   <div class="section-head">
-    <div><h2>Olho do Toji — Shape</h2><p>Avaliação física com IA</p></div>
+    <div><h2>Olho do Toji</h2><p>Avaliação física e análise nutricional com IA</p></div>
   </div>
   <div class="two-col">
     <div class="card">
-      <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">Enviar foto para análise</b>
+      <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">👁️ Avaliar Shape</b>
       <p style="color:var(--txt-3);font-size:13px;line-height:1.5;margin-bottom:14px">
-        A foto é comprimida localmente e enviada apenas para análise. Não é armazenada.</p>
-      <label class="btn btn-primary" style="cursor:pointer;justify-content:center;width:100%">
-        📸 Selecionar foto
+        Foto do corpo — a IA avalia proporções, simetria e desenvolvimento muscular.</p>
+      <label class="btn btn-primary" style="cursor:pointer;justify-content:center;width:100%;margin-bottom:8px">
+        📸 Foto do corpo
         <input type="file" accept="image/*" capture="environment" onchange="shapeAnalyze(event)" style="display:none">
       </label>
       <canvas id="shapeCanvas" style="display:none"></canvas>
-      <div id="shapeLoading" style="display:none;text-align:center;padding:20px;color:var(--txt-3)">
-        🤖 Analisando com IA…</div>
+      <div id="shapeLoading" style="display:none;text-align:center;padding:14px;color:var(--txt-3);font-size:13px">
+        🤖 Analisando shape…</div>
+      ${shapeResult?`
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+            <b style="font-size:14px">${shapeResult.score}/10 — ${shapeResult.label}</b>
+            <span style="font-size:11.5px;color:var(--txt-3)">${shapeResult.date}</span>
+          </div>
+          <div class="shape-zones">
+            ${shapeResult.zones.map(z=>`<div class="zone-card"><span class="zic">${z.ic}</span><div class="zn">${z.n}</div><div class="zv" style="color:${z.c}">${z.v}</div></div>`).join('')}
+          </div>
+          <div style="margin-top:12px;padding:12px;background:var(--bg);border-radius:11px;font-size:13px;line-height:1.5;color:var(--txt-2)">${shapeResult.advice}</div>
+          <button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="localStorage.removeItem('vtz_shape_result');render()">Limpar</button>
+        </div>`:'<div style="color:var(--txt-3);font-size:13px;text-align:center;padding:16px 0">Nenhuma avaliação ainda.</div>'}
     </div>
+
     <div class="card">
-      ${result?`
-        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">Último resultado — ${result.date}</b>
-        <div style="color:var(--txt-3);font-size:12px;margin-bottom:14px">${result.score}/10 — ${result.label}</div>
-        <div class="shape-zones">
-          ${result.zones.map(z=>`<div class="zone-card"><span class="zic">${z.ic}</span><div class="zn">${z.n}</div><div class="zv" style="color:${z.c}">${z.v}</div></div>`).join('')}
-        </div>
-        <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:12px;font-size:13.5px;line-height:1.5;color:var(--txt-2)">${result.advice}</div>
-        <button class="btn btn-ghost" style="margin-top:12px" onclick="localStorage.removeItem('vtz_shape_result');render()">Limpar resultado</button>
-      `:`<div class="empty" style="padding:40px 20px">
-        <span style="font-size:40px;display:block;margin-bottom:10px">👁️</span>
-        <div>Envie uma foto para a IA analisar seu shape.</div>
-        </div>`}
+      <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">🍽️ Analisar Prato</b>
+      <p style="color:var(--txt-3);font-size:13px;line-height:1.5;margin-bottom:14px">
+        Foto da refeição — a IA estima calorias, macros (proteína, carbo, gordura) e micronutrientes de tudo no prato.</p>
+      <label class="btn btn-primary" style="cursor:pointer;justify-content:center;width:100%;background:linear-gradient(135deg,#1db954,var(--cyan));margin-bottom:8px">
+        📸 Foto do prato
+        <input type="file" accept="image/*" capture="environment" onchange="pratoAnalyze(event)" style="display:none">
+      </label>
+      <canvas id="pratoCanvas" style="display:none"></canvas>
+      <div id="pratoLoading" style="display:none;text-align:center;padding:14px;color:var(--txt-3);font-size:13px">
+        🤖 Calculando nutrição…</div>
+      ${pratoResult?renderPratoResult(pratoResult):'<div style="color:var(--txt-3);font-size:13px;text-align:center;padding:16px 0">Nenhuma análise ainda.</div>'}
     </div>
   </div>`;
 }
+
+function renderPratoResult(d){
+  return `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+      <b style="font-size:14px">${d.nome||'Refeição analisada'}</b>
+      <span style="font-size:11.5px;color:var(--txt-3)">${d.date}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+      <div style="padding:10px;background:rgba(109,94,252,.12);border-radius:10px;text-align:center">
+        <div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--accent-2)">${d.kcal}</div>
+        <div style="font-size:11px;color:var(--txt-3);margin-top:2px">kcal total</div>
+      </div>
+      <div style="padding:10px;background:rgba(33,217,122,.12);border-radius:10px;text-align:center">
+        <div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--green)">${d.proteina}g</div>
+        <div style="font-size:11px;color:var(--txt-3);margin-top:2px">proteína</div>
+      </div>
+      <div style="padding:10px;background:rgba(255,179,64,.12);border-radius:10px;text-align:center">
+        <div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--amber)">${d.carbo}g</div>
+        <div style="font-size:11px;color:var(--txt-3);margin-top:2px">carboidrato</div>
+      </div>
+      <div style="padding:10px;background:rgba(63,216,224,.12);border-radius:10px;text-align:center">
+        <div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--cyan)">${d.gordura}g</div>
+        <div style="font-size:11px;color:var(--txt-3);margin-top:2px">gordura</div>
+      </div>
+    </div>
+    ${d.itens&&d.itens.length?`<div style="margin-bottom:10px">
+      <b style="font-size:12px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.06em">Itens identificados</b>
+      <div style="margin-top:6px">${d.itens.map(i=>`
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line)">
+          <span>${i.n}</span>
+          <span style="color:var(--txt-3);font-family:var(--mono);font-size:11.5px">${i.kcal}kcal · P${i.p}g C${i.c}g G${i.g}g</span>
+        </div>`).join('')}
+      </div></div>`:''}
+    ${d.micros?`<div style="padding:10px 12px;background:var(--bg);border-radius:10px;font-size:12.5px;color:var(--txt-2);line-height:1.7;margin-bottom:8px">
+      <b style="display:block;color:var(--txt);margin-bottom:4px">🔬 Micronutrientes estimados</b>${d.micros}</div>`:''}
+    ${d.avaliacao?`<div style="padding:10px 12px;background:rgba(109,94,252,.08);border-radius:10px;font-size:13px;color:var(--accent-2);line-height:1.5">${d.avaliacao}</div>`:''}
+    <button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="localStorage.removeItem('vtz_prato_result');render()">Limpar</button>
+  </div>`;
+}
+
 async function shapeAnalyze(e){
   const file=e.target.files[0];if(!file)return;
   document.getElementById('shapeLoading').style.display='block';
@@ -1785,16 +1838,47 @@ async function shapeAnalyze(e){
         'Seja honesto e direto — elogios vazios não ajudam um atleta a melhorar. Identifique pontos fortes reais e deficiências prioritárias. '+
         'Retorne SOMENTE JSON válido, sem texto antes ou depois.';
       const r=await callAbacus([{role:'user',content:[
-        {type:'text',text:'Analise esta foto de físico/corpo. Retorne JSON: {score(0-10 baseado em desenvolvimento muscular e proporção real), label(classificação técnica ex: "em desenvolvimento", "boa base", "atlético"), zones:[{ic(emoji),n(nome da zona muscular),v(avaliação curta e honesta),c(cor CSS: var(--green) se bom, var(--amber) se médio, var(--red) se fraco)}] com exatamente 3 zonas (superior/core/inferior), advice(2 frases técnicas: 1 ponto forte real + 1 prioridade de treino imediata)}. JSON puro.'},
+        {type:'text',text:'Analise esta foto de físico/corpo. Retorne JSON: {score(0-10), label(classificação técnica), zones:[{ic,n,v,c}] 3 zonas (superior/core/inferior), advice(2 frases: 1 ponto forte + 1 prioridade de treino)}. JSON puro.'},
         {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64}}
       ]}],400,shapeSys);
       let parsed;
       try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}
-      catch{parsed={score:5,label:'análise concluída',zones:[{ic:'💪',n:'Superioir',v:'ok',c:'var(--amber)'},{ic:'🔥',n:'Core',v:'em progresso',c:'var(--amber)'},{ic:'🦵',n:'Inferior',v:'ok',c:'var(--green)'}],advice:r.slice(0,200)}}
+      catch{parsed={score:5,label:'análise concluída',zones:[{ic:'💪',n:'Superior',v:'em progresso',c:'var(--amber)'},{ic:'🔥',n:'Core',v:'em progresso',c:'var(--amber)'},{ic:'🦵',n:'Inferior',v:'ok',c:'var(--green)'}],advice:r.slice(0,200)}}
       parsed.date=new Date().toLocaleDateString('pt-BR');
       localStorage.setItem('vtz_shape_result',JSON.stringify(parsed));
       toast('Shape analisado!','👁️');addXp(15);render();
     }catch(err){toast('Erro: '+err.message,'⚠️');document.getElementById('shapeLoading').style.display='none';}
+  };
+  img.src=URL.createObjectURL(file);
+}
+
+async function pratoAnalyze(e){
+  const file=e.target.files[0];if(!file)return;
+  document.getElementById('pratoLoading').style.display='block';
+  const canvas=document.getElementById('pratoCanvas');
+  const img=new Image();
+  img.onload=async()=>{
+    const max=700;const scale=Math.min(max/img.width,max/img.height,1);
+    canvas.width=img.width*scale;canvas.height=img.height*scale;
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    const b64=canvas.toDataURL('image/jpeg',.75).split(',')[1];
+    try{
+      const pratoSys=
+        'Você é um nutricionista esportivo especializado em análise de composição de refeições e cálculo nutricional. '+
+        'Identifique todos os alimentos visíveis na foto com precisão, estime porções realistas pelo tamanho visual e calcule os valores nutricionais. '+
+        'Para atletas de musculação (17 anos, ~70kg), contextualize os valores: se a proteína é suficiente para recuperação muscular, se o carboidrato está adequado para o momento do dia. '+
+        'Seja preciso nos números — use tabelas nutricionais reais como referência. Retorne SOMENTE JSON válido.';
+      const r=await callAbacus([{role:'user',content:[
+        {type:'text',text:'Analise esta foto de prato de comida. Identifique cada alimento, estime porções e calcule nutrição total. Retorne JSON: {nome(nome descritivo da refeição), kcal(total numérico), proteina(g total), carbo(g total), gordura(g total), itens:[{n(nome do alimento),kcal,p(proteína g),c(carbo g),g(gordura g)}], micros(string com principais vitaminas e minerais presentes e suas funções, ex: "Ferro (síntese de hemoglobina) · Vitamina C (imunidade) · Zinco (testosterona)"), avaliacao(1-2 frases avaliando a refeição para um atleta de musculação: pontos fortes e o que faltou)}. JSON puro.'},
+        {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64}}
+      ]}],500,pratoSys);
+      let parsed;
+      try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}
+      catch{parsed={nome:'Refeição',kcal:'?',proteina:'?',carbo:'?',gordura:'?',itens:[],micros:'',avaliacao:r.slice(0,200)}}
+      parsed.date=new Date().toLocaleDateString('pt-BR');
+      localStorage.setItem('vtz_prato_result',JSON.stringify(parsed));
+      toast('Prato analisado!','🍽️');addXp(10);render();
+    }catch(err){toast('Erro: '+err.message,'⚠️');document.getElementById('pratoLoading').style.display='none';}
   };
   img.src=URL.createObjectURL(file);
 }
