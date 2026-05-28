@@ -15,6 +15,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
+<!-- ResponsiveVoice — vozes neurais pt-BR (Google TTS) -->
+<script src="https://code.responsivevoice.org/responsivevoice.js" defer></script>
+
 <!-- Firebase SDK (modular, via CDN) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1481,6 +1484,39 @@ function viewConfig(m){
         </div>
       </div>
 
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">🔊 Voz do JARVIS</b>
+        <div class="frow" style="margin-bottom:12px">
+          <label class="fl">Voz</label>
+          <select class="input" id="rvVoice" onchange="previewVoice()">
+            ${[
+              ['Brazilian Portuguese Female','🇧🇷 Feminina (padrão)'],
+              ['Brazilian Portuguese Male','🇧🇷 Masculina'],
+              ['Portuguese Female','🇵🇹 Feminina (Portugal)'],
+              ['Google português do Brasil','Google pt-BR (navegador)'],
+            ].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female')===v?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div class="frow" style="margin-bottom:12px">
+          <label class="fl">Velocidade — <b id="rateVal">${localStorage.getItem('vtz_rv_rate')||'0.9'}</b>×</label>
+          <input type="range" id="rvRate" min="0.5" max="1.5" step="0.05"
+            value="${localStorage.getItem('vtz_rv_rate')||'0.9'}"
+            oninput="document.getElementById('rateVal').textContent=this.value"
+            style="width:100%;accent-color:var(--accent);margin-top:6px">
+        </div>
+        <div class="frow" style="margin-bottom:12px">
+          <label class="fl">Tom (pitch) — <b id="pitchVal">${localStorage.getItem('vtz_rv_pitch')||'1.0'}</b></label>
+          <input type="range" id="rvPitch" min="0.5" max="1.5" step="0.05"
+            value="${localStorage.getItem('vtz_rv_pitch')||'1.0'}"
+            oninput="document.getElementById('pitchVal').textContent=this.value"
+            style="width:100%;accent-color:var(--accent);margin-top:6px">
+        </div>
+        <div style="display:flex;gap:9px">
+          <button class="btn btn-primary" onclick="saveVoicePrefs()">Salvar voz</button>
+          <button class="btn btn-ghost" onclick="previewVoice()">▶ Testar agora</button>
+        </div>
+      </div>
+
       <div class="card" style="background:linear-gradient(150deg,${hexA(p.accent,.12)},var(--bg-2))">
         <b style="font-family:var(--display);font-size:14px;display:block;margin-bottom:8px">📱 Instalar no iPhone</b>
         <p style="color:var(--txt-2);font-size:13px;line-height:1.55">
@@ -1784,11 +1820,31 @@ function pomoSetRest(v){if(!pomoState.running&&v>0){pomoState.rest=v;render()}}
 /* =================================================================
    WEB SPEECH API — voz
    ================================================================= */
+function getVoicePrefs(){
+  return{
+    voice:localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female',
+    rate:parseFloat(localStorage.getItem('vtz_rv_rate')||'0.9'),
+    pitch:parseFloat(localStorage.getItem('vtz_rv_pitch')||'1'),
+  };
+}
 function speak(text){
+  const p=getVoicePrefs();
+  /* tenta ResponsiveVoice (vozes neurais Google) */
+  if(window.responsiveVoice){
+    try{
+      responsiveVoice.cancel();
+      responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
+        onend:null,onerror:()=>speakFallback(text,p)});
+      return;
+    }catch(e){}
+  }
+  speakFallback(text,p);
+}
+function speakFallback(text,p){
   if(!window.speechSynthesis)return;
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
-  u.lang='pt-BR';u.rate=0.92;u.pitch=1.05;u.volume=1;
+  u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.volume=1;
   const doSpeak=()=>{
     const vs=window.speechSynthesis.getVoices();
     const pt=vs.find(v=>v.lang==='pt-BR'&&v.localService)||
@@ -2074,8 +2130,18 @@ function openBook(id){ttsState.bookId=id;ttsState.playing=false;ttsState.pos=0;r
 function ttsPlay(){
   const b=BOOKS.find(x=>x.id===ttsState.bookId);if(!b)return;
   ttsState.playing=true;render();
-  const u=new SpeechSynthesisUtterance(b.content.slice(ttsState.pos));
-  u.lang='pt-BR';u.rate=1.0;
+  const p=getVoicePrefs();
+  const chunk=b.content.slice(ttsState.pos);
+  if(window.responsiveVoice){
+    try{
+      responsiveVoice.cancel();
+      responsiveVoice.speak(chunk,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
+        onend:()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render();}});
+      return;
+    }catch(e){}
+  }
+  const u=new SpeechSynthesisUtterance(chunk);
+  u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;
   u.onend=()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render();}
   u.onboundary=e=>{ttsState.pos=e.charIndex;
     const pct=Math.round(ttsState.pos/b.content.length*100);
@@ -2227,6 +2293,27 @@ function viewPredição(m){
 
 /* Injeta predição como view */
 function viewPredView(m){m.innerHTML=viewPredição();}
+
+function saveVoicePrefs(){
+  const v=document.getElementById('rvVoice')?.value;
+  const r=document.getElementById('rvRate')?.value;
+  const pi=document.getElementById('rvPitch')?.value;
+  if(v)localStorage.setItem('vtz_rv_voice',v);
+  if(r)localStorage.setItem('vtz_rv_rate',r);
+  if(pi)localStorage.setItem('vtz_rv_pitch',pi);
+  toast('Preferências de voz salvas','🔊');
+}
+function previewVoice(){
+  const v=document.getElementById('rvVoice')?.value||getVoicePrefs().voice;
+  const r=parseFloat(document.getElementById('rvRate')?.value||getVoicePrefs().rate);
+  const pi=parseFloat(document.getElementById('rvPitch')?.value||getVoicePrefs().pitch);
+  if(window.responsiveVoice){
+    responsiveVoice.cancel();
+    responsiveVoice.speak('Olá Victor. JARVIS ativo e pronto para te ajudar.',v,{rate:r,pitch:pi,volume:1});
+  } else {
+    speak('Olá Victor. JARVIS ativo e pronto para te ajudar.');
+  }
+}
 
 function saveAbacusKey(){
   const k=document.getElementById('abacusKey')?.value.trim();if(!k)return;
