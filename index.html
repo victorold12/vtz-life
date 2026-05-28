@@ -486,6 +486,22 @@ body.light .topbar h1{background:linear-gradient(120deg,#13152b,#4a3fb5);-webkit
 .pred-box{padding:20px;border-radius:16px;background:var(--bg);border:1px solid var(--line);text-align:center;margin-bottom:10px;box-shadow:var(--hi)}
 .pred-box .pb-val{font-family:var(--display);font-size:38px;font-weight:800;color:var(--green)}
 .pred-box .pb-lbl{font-size:12.5px;color:var(--txt-3);margin-top:5px}
+
+/* ---------- E-BOOK READER ---------- */
+.ebook-section{margin-bottom:28px}
+.ebook-section h3{font-family:var(--display);font-size:18px;font-weight:700;color:var(--accent-2);
+  margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.ebook-section p{font-size:14.5px;line-height:1.85;color:var(--txt-2);margin-bottom:10px}
+.ebook-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:8px;background:rgba(109,94,252,.15);color:var(--accent-2);letter-spacing:.04em}
+.analysis-card{border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid var(--line);box-shadow:var(--hi)}
+.analysis-card h4{font-family:var(--display);font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.analysis-card ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.analysis-card ul li{font-size:13.5px;color:var(--txt-2);line-height:1.5;display:flex;gap:8px}
+.analysis-card ul li::before{content:"•";color:var(--accent);font-weight:700;flex-shrink:0}
+.concept-chip{display:inline-block;padding:5px 12px;border-radius:10px;font-size:12.5px;
+  background:var(--bg);border:1px solid var(--line);margin:4px;cursor:default;box-shadow:var(--hi)}
+.concept-chip b{color:var(--accent-2)}
 </style>
 </head>
 <body>
@@ -665,6 +681,7 @@ const seed=()=>({
     {id:1,title:'Treino — Ficha A',date:todayISO(),time:'18:10',cat:'treino'},
     {id:2,title:'Escola (13h–18h)',date:todayISO(),time:'13:00',cat:'estudo'},
   ],
+  ebooks:[],
 });
 function genLog(p){const o={};for(let i=0;i<35;i++){const d=new Date();d.setDate(d.getDate()-i);
   o[d.toISOString().slice(0,10)]=Math.random()<p}return o}
@@ -674,6 +691,7 @@ function load(){try{const r=localStorage.getItem(KEY);const s=r?JSON.parse(r):se
   // migração: garante campos novos em dados salvos antigos
   if(!s.profile)s.profile={name:'Victor Hugo',avatar:'VH',tag:'Constância > Perfeição',accent:'#6d5efc'};
   if(s.theme===undefined)s.theme='dark';
+  if(!s.ebooks)s.ebooks=[];
   return s;}catch(e){return seed()}}
 
 /* =================================================================
@@ -2143,34 +2161,144 @@ const BOOKS=[
    Disciplina é fazer o que você odeia com a mesma intensidade que faz o que ama.`},
 ];
 let ttsState={bookId:null,playing:false,pos:0};
+let ebookReader=null; // id do ebook customizado aberto no leitor
+
+/* resolv book em BOOKS ou S.ebooks */
+function findBook(id){return BOOKS.find(x=>x.id===id)||S.ebooks.find(x=>x.id===id)||null;}
+
+/* ------------------------------------------------------------------ */
 function viewBiblioteca(m){
+  if(ebookReader)return viewEbookReader(m,ebookReader);
   m.innerHTML=`
   <div class="section-head">
-    <div><h2>Biblioteca VTZ</h2><p>Audiobooks com síntese de voz — ouça enquanto treina</p></div>
+    <div><h2>Biblioteca VTZ</h2><p>Audiobooks, e-books e análise com IA</p></div>
+    <button class="btn btn-primary" onclick="openAddEbook()">📖 Adicionar e-book</button>
   </div>
   ${ttsState.bookId?playerCard():''}
-  <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px;margin-top:${ttsState.bookId?16:0}px">
+  <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--txt-2);
+    text-transform:uppercase;letter-spacing:.1em;margin:${ttsState.bookId?'20px':'0px'} 0 14px">📚 Biblioteca padrão</div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
     ${BOOKS.map(b=>{
       const prog=+localStorage.getItem('vtz_book_prog_'+b.id)||0;
       return `<div class="card book-card" onclick="openBook(${b.id})">
-        <div class="bk-title">${b.title}</div>
-        <div class="bk-author">${b.author}</div>
-        <p style="font-size:12.5px;color:var(--txt-3);margin-top:6px;line-height:1.4">${b.desc}</p>
+        <div class="bk-title">${esc(b.title)}</div>
+        <div class="bk-author">${esc(b.author)}</div>
+        <p style="font-size:12.5px;color:var(--txt-3);margin-top:6px;line-height:1.4">${esc(b.desc)}</p>
         <div class="bk-prog"><i style="width:${prog}%"></i></div>
-        <div style="font-size:11.5px;color:var(--txt-3);margin-top:4px">${prog}% lido</div>
+        <div style="font-size:11.5px;color:var(--txt-3);margin-top:4px">${prog}% ouvido</div>
       </div>`;
     }).join('')}
+  </div>
+  ${(S.ebooks||[]).length?`
+  <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--txt-2);
+    text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">📖 Meus e-books</div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px">
+    ${S.ebooks.map(b=>`<div class="card book-card" style="position:relative">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1;cursor:pointer" onclick="ebookReader='${b.id}';render()">
+          <span class="ebook-badge">Meu e-book</span>
+          <div class="bk-title" style="margin-top:8px">${esc(b.title)}</div>
+          <div class="bk-author">${esc(b.author)}</div>
+          <p style="font-size:12.5px;color:var(--txt-3);margin-top:6px;line-height:1.4">${esc(b.desc)}</p>
+        </div>
+        <button class="del" style="opacity:.7;flex-shrink:0" onclick="event.stopPropagation();delEbook('${b.id}')">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      </div>
+      <div class="bk-prog" style="margin-top:12px"><i style="width:${b.analysis?'100':'0'}%"></i></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+        <span style="font-size:11.5px;color:var(--txt-3)">${b.sections?b.sections.length+' seções':'processando…'}</span>
+        ${b.analysis?'<span style="font-size:11px;color:var(--green);font-weight:700">✓ Análise pronta</span>':''}
+      </div>
+    </div>`).join('')}
+  </div>`:'<div class="card" style="text-align:center;padding:32px;color:var(--txt-3)">'+
+    '<div style="font-size:32px;margin-bottom:10px">📖</div>Nenhum e-book adicionado ainda.<br>'+
+    '<button class="btn btn-primary" style="margin-top:14px" onclick="openAddEbook()">Adicionar agora</button></div>'}`;
+}
+
+/* ------------------------------------------------------------------ */
+function viewEbookReader(m,id){
+  const b=S.ebooks.find(x=>x.id===id);
+  if(!b){ebookReader=null;return viewBiblioteca(m);}
+  const sections=b.sections||[];
+  const plain=sections.map(s=>s.title+'\n'+s.content).join('\n\n');
+
+  m.innerHTML=`
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">
+    <button class="btn btn-ghost" style="padding:9px 13px" onclick="ebookReader=null;ttsStop();render()">← Voltar</button>
+    <div>
+      <h2 style="font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.02em">${esc(b.title)}</h2>
+      <div style="font-size:13px;color:var(--txt-3);margin-top:2px">${esc(b.author)} · ${sections.length} seções</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:9px">
+      <button class="btn btn-ghost" onclick="ttsReaderPlay('${id}')" id="readerPlayBtn">▶ Ouvir</button>
+      <button class="btn btn-primary" onclick="createAnalysis('${id}')">${b.analysis?'🔄 Reanalisar':'📊 Criar análise simples'}</button>
+    </div>
+  </div>
+
+  ${ttsState.bookId===id?`
+  <div class="card" style="margin-bottom:18px;background:linear-gradient(135deg,rgba(109,94,252,.1),var(--bg))">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="font-size:22px">🎧</span>
+      <div style="flex:1"><b style="font-size:14px">${esc(b.title)}</b>
+        <div style="font-size:12px;color:var(--txt-3)">Leitura em voz</div></div>
+      <button class="btn ${ttsState.playing?'btn-ghost':'btn-primary'}" onclick="${ttsState.playing?'ttsPause()':'ttsReaderPlay(\''+id+'\')'}">
+        ${ttsState.playing?'⏸ Pausar':'▶ Continuar'}</button>
+      <button class="btn btn-ghost" onclick="ttsStop()">■ Parar</button>
+    </div>
+  </div>`:''}
+
+  ${b.analysis?renderAnalysis(b.analysis):''}
+
+  <div class="card" style="padding:26px">
+    <div style="font-size:13px;color:var(--txt-3);margin-bottom:18px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">${sections.length} seções · ${plain.split(' ').length} palavras aprox.</div>
+    ${sections.map(s=>`<div class="ebook-section">
+      <h3>${esc(s.title)}</h3>
+      ${esc(s.content).split('\n').filter(l=>l.trim()).map(l=>`<p>${l}</p>`).join('')}
+    </div>`).join('')}
   </div>`;
 }
+
+function renderAnalysis(a){
+  return `<div class="card glow" style="margin-bottom:18px;padding:24px">
+    <div style="font-family:var(--display);font-size:17px;font-weight:800;margin-bottom:18px;
+      background:linear-gradient(120deg,#fff,var(--accent-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">
+      📊 Análise de absorção</div>
+
+    <div class="analysis-card" style="background:rgba(109,94,252,.08)">
+      <h4><span style="font-size:16px">📝</span> Resumo</h4>
+      <p style="font-size:13.5px;line-height:1.7;color:var(--txt-2)">${esc(a.resumo||'')}</p>
+    </div>
+
+    <div class="analysis-card" style="background:rgba(38,224,140,.07)">
+      <h4><span style="font-size:16px">💡</span> Ideias principais</h4>
+      <ul>${(a.ideias||[]).map(i=>`<li>${esc(i)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="analysis-card" style="background:rgba(255,194,77,.07)">
+      <h4><span style="font-size:16px">🎯</span> Pontos mais importantes</h4>
+      <ul>${(a.pontos||[]).map(i=>`<li>${esc(i)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="analysis-card" style="background:rgba(70,224,234,.07)">
+      <h4><span style="font-size:16px">🔑</span> Conceitos-chave</h4>
+      <div style="margin-top:4px">${(a.conceitos||[]).map(c=>`<span class="concept-chip"><b>${esc(c.termo)}</b>: ${esc(c.def)}</span>`).join('')}</div>
+    </div>
+
+    <div class="analysis-card" style="background:rgba(139,125,255,.08);margin-bottom:0">
+      <h4><span style="font-size:16px">🌐</span> Visão geral — o que realmente importa</h4>
+      <p style="font-size:13.5px;line-height:1.7;color:var(--txt-2)">${esc(a.visao||'')}</p>
+    </div>
+  </div>`;
+}
+
+/* ------------------------------------------------------------------ */
 function playerCard(){
-  const b=BOOKS.find(x=>x.id===ttsState.bookId);if(!b)return '';
-  return `<div class="card" style="background:linear-gradient(135deg,rgba(109,94,252,.12),var(--bg-2))">
+  const b=findBook(ttsState.bookId);if(!b)return '';
+  return `<div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(109,94,252,.12),var(--bg))">
     <div style="display:flex;align-items:center;gap:14px">
-      <div style="width:50px;height:50px;border-radius:12px;background:var(--accent);display:grid;place-items:center;font-size:24px">📚</div>
-      <div style="flex:1">
-        <b style="font-family:var(--display)">${b.title}</b>
-        <div style="font-size:12.5px;color:var(--txt-3)">${b.author}</div>
-      </div>
+      <div style="width:46px;height:46px;border-radius:12px;background:var(--accent);display:grid;place-items:center;font-size:22px">📚</div>
+      <div style="flex:1"><b style="font-family:var(--display)">${esc(b.title)}</b>
+        <div style="font-size:12.5px;color:var(--txt-3)">${esc(b.author)}</div></div>
       <div style="display:flex;gap:8px">
         <button class="btn ${ttsState.playing?'btn-ghost':'btn-primary'}" onclick="${ttsState.playing?'ttsPause()':'ttsPlay()'}">
           ${ttsState.playing?'⏸ Pausar':'▶ Ouvir'}</button>
@@ -2179,30 +2307,160 @@ function playerCard(){
     </div>
   </div>`;
 }
+
 function openBook(id){ttsState.bookId=id;ttsState.playing=false;ttsState.pos=0;render()}
+function ttsReaderPlay(id){
+  const b=S.ebooks.find(x=>x.id===id);if(!b)return;
+  ttsState.bookId=id;ttsState.playing=true;ttsState.pos=0;
+  render();
+  const plain=(b.sections||[]).map(s=>s.title+'. '+s.content).join(' ');
+  const p=getVoicePrefs();
+  if(window.responsiveVoice){try{
+    responsiveVoice.cancel();
+    responsiveVoice.speak(plain,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
+      onend:()=>{ttsState.playing=false;render();}});
+    return;}catch(e){}}
+  const u=new SpeechSynthesisUtterance(plain);
+  u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;
+  u.onend=()=>{ttsState.playing=false;render();};
+  window.speechSynthesis.speak(u);
+}
 function ttsPlay(){
-  const b=BOOKS.find(x=>x.id===ttsState.bookId);if(!b)return;
+  const b=findBook(ttsState.bookId);if(!b)return;
   ttsState.playing=true;render();
   const p=getVoicePrefs();
-  const chunk=b.content.slice(ttsState.pos);
-  if(window.responsiveVoice){
-    try{
-      responsiveVoice.cancel();
-      responsiveVoice.speak(chunk,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
-        onend:()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render();}});
-      return;
-    }catch(e){}
-  }
+  const chunk=(b.content||'').slice(ttsState.pos);
+  if(window.responsiveVoice){try{
+    responsiveVoice.cancel();
+    responsiveVoice.speak(chunk,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
+      onend:()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render();}});
+    return;}catch(e){}}
   const u=new SpeechSynthesisUtterance(chunk);
   u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;
   u.onend=()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render();}
   u.onboundary=e=>{ttsState.pos=e.charIndex;
-    const pct=Math.round(ttsState.pos/b.content.length*100);
+    const pct=Math.round(ttsState.pos/(b.content||'').length*100);
     localStorage.setItem('vtz_book_prog_'+b.id,pct);}
   window.speechSynthesis.speak(u);
 }
-function ttsPause(){window.speechSynthesis.pause();ttsState.playing=false;render()}
-function ttsStop(){window.speechSynthesis.cancel();ttsState.playing=false;ttsState.bookId=null;render()}
+function ttsPause(){
+  if(window.responsiveVoice)responsiveVoice.pause();
+  window.speechSynthesis.pause();
+  ttsState.playing=false;render();
+}
+function ttsStop(){
+  if(window.responsiveVoice)responsiveVoice.cancel();
+  window.speechSynthesis.cancel();
+  ttsState.playing=false;ttsState.bookId=null;render();
+}
+
+/* ------------------------------------------------------------------ */
+/* ADICIONAR E-BOOK */
+let _ebookRawText='';
+function openAddEbook(){
+  _ebookRawText='';
+  modal(`
+  <h3>📖 Adicionar meu e-book</h3>
+  <p class="ms">Cole o conteúdo — a IA organiza, estrutura e cria análise automaticamente</p>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button id="tabFmt" class="ficha-tab active" onclick="switchEbookTab('fmt')">✏️ Texto formatado</button>
+    <button id="tabRaw" class="ficha-tab" onclick="switchEbookTab('raw')">📝 Texto bruto</button>
+  </div>
+  <div id="tabFmtHint" style="font-size:12.5px;color:var(--txt-3);margin-bottom:8px">Texto já com capítulos, tópicos e estrutura definida.</div>
+  <div id="tabRawHint" style="font-size:12.5px;color:var(--txt-3);margin-bottom:8px;display:none">Texto corrido sem estrutura — a IA vai organizar tudo.</div>
+  <textarea class="input" id="ebookText" rows="11" placeholder="Cole aqui o conteúdo do e-book…" style="resize:vertical;line-height:1.6;font-size:13.5px"></textarea>
+  <div id="ebookStatus" style="min-height:20px;margin-top:8px;font-size:12.5px;color:var(--txt-3)"></div>
+  <div class="modal-foot" style="margin-top:6px">
+    <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+    <button class="btn btn-primary" id="ebookProcessBtn" onclick="processEbook()">🤖 Processar com IA</button>
+  </div>`);
+}
+let _ebookTab='fmt';
+function switchEbookTab(t){
+  _ebookTab=t;
+  document.getElementById('tabFmt').classList.toggle('active',t==='fmt');
+  document.getElementById('tabRaw').classList.toggle('active',t==='raw');
+  document.getElementById('tabFmtHint').style.display=t==='fmt'?'block':'none';
+  document.getElementById('tabRawHint').style.display=t==='raw'?'block':'none';
+}
+async function processEbook(){
+  const text=document.getElementById('ebookText')?.value.trim();
+  if(!text||text.length<50){toast('Cole algum conteúdo primeiro','⚠️');return;}
+  const btn=document.getElementById('ebookProcessBtn');
+  const status=document.getElementById('ebookStatus');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Processando…';}
+  if(status)status.textContent='A IA está lendo e estruturando o conteúdo…';
+  const isRaw=_ebookTab==='raw';
+  const ebookSys=
+    'Você é um editor especializado em organização de conteúdo educacional e produção de e-books. '+
+    'Sua tarefa é analisar o texto enviado, identificar título, autor (se disponível), subtítulos, tópicos, '+
+    'capítulos e estrutura lógica, '+
+    (isRaw?'e reorganizar um texto bruto em seções claras e bem escritas. ':'e reorganizar o conteúdo já estruturado de forma ainda mais limpa e padronizada. ')+
+    'Corrija formatação, elimine ruídos, padronize o estilo. '+
+    'Retorne SOMENTE JSON válido, sem texto antes ou depois.';
+  const prompt=`Texto ${isRaw?'bruto (sem estrutura)':'formatado'} para processar como e-book:\n\n${text.slice(0,6000)}\n\n`+
+    `Retorne JSON: {title(título identificado ou gerado), author(autor ou "Desconhecido"), desc(1 frase descritiva), `+
+    `sections:[{title(título da seção), content(conteúdo da seção, limpo e padronizado)}]} — mínimo 3 seções. JSON puro.`;
+  try{
+    const r=await callAbacus([{role:'user',content:prompt}],1200,ebookSys);
+    let parsed;
+    try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}
+    catch{
+      parsed={title:'Meu e-book',author:'Desconhecido',desc:'Conteúdo importado.',
+        sections:[{title:'Conteúdo',content:text}]};
+    }
+    if(!parsed.sections||!parsed.sections.length)
+      parsed.sections=[{title:'Conteúdo completo',content:text}];
+    const nb={id:'ub_'+uid(),title:parsed.title||'Meu e-book',author:parsed.author||'Desconhecido',
+      desc:parsed.desc||'',sections:parsed.sections,analysis:null,createdAt:todayISO()};
+    if(!S.ebooks)S.ebooks=[];
+    S.ebooks.push(nb);
+    save();
+    closeModal();
+    toast('E-book adicionado! '+parsed.sections.length+' seções','📖');
+    addXp(20);
+    ebookReader=nb.id;
+    render();
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='🤖 Processar com IA';}
+    if(status)status.textContent='Erro: '+e.message;
+    toast('Erro ao processar: '+e.message,'⚠️');
+  }
+}
+
+async function createAnalysis(id){
+  const b=S.ebooks.find(x=>x.id===id);if(!b)return;
+  toast('Gerando análise de absorção…','📊');
+  const plain=(b.sections||[]).map(s=>s.title+':\n'+s.content).join('\n\n');
+  const analysisSys=
+    'Você é um especialista em síntese de conhecimento e aprendizado acelerado, com foco em maximizar retenção. '+
+    'Analise o conteúdo do e-book e gere uma análise profunda e objetiva que ajude o leitor a absorver o que realmente importa. '+
+    'Seja direto, use linguagem clara. Retorne SOMENTE JSON válido.';
+  const prompt=`Conteúdo do e-book "${b.title}":\n\n${plain.slice(0,5000)}\n\n`+
+    `Retorne JSON: {resumo(2-3 parágrafos densos resumindo o conteúdo completo), `+
+    `ideias(array de 5 strings — ideias principais do livro), `+
+    `pontos(array de 5 strings — pontos mais importantes e práticos para aplicar), `+
+    `conceitos(array de 5 objetos {termo,def} — conceitos-chave com definição curta), `+
+    `visao(1 parágrafo de síntese final — o que realmente importa absorver deste material)} JSON puro.`;
+  try{
+    const r=await callAbacus([{role:'user',content:prompt}],900,analysisSys);
+    let parsed;
+    try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}
+    catch{parsed={resumo:r,ideias:[],pontos:[],conceitos:[],visao:''}}
+    b.analysis=parsed;
+    save();
+    toast('Análise criada com sucesso!','📊');
+    addXp(15);
+    render();
+  }catch(e){toast('Erro: '+e.message,'⚠️');}
+}
+
+function delEbook(id){
+  if(!confirm('Remover este e-book e sua análise?'))return;
+  S.ebooks=S.ebooks.filter(x=>x.id!==id);
+  if(ebookReader===id){ebookReader=null;ttsStop();}
+  save();render();toast('E-book removido','🗑️');
+}
 
 /* =================================================================
    HIDRATAÇÃO COM VOZ
