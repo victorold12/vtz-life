@@ -735,6 +735,8 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const uid=()=>Date.now()+Math.floor(Math.random()*999);
 const brl=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SAFE_COLORS=['var(--green)','var(--amber)','var(--red)','var(--cyan)','var(--accent)','var(--accent-2)','var(--txt-2)','var(--txt-3)'];
+const safeColor=c=>SAFE_COLORS.includes(c)?c:'var(--txt-2)';
 const prioColor={alta:'var(--red)',media:'var(--amber)',baixa:'var(--cyan)'};
 const catColor={'Renda':'var(--green)','Alimentação':'var(--amber)','Saúde':'var(--accent)',
   'Poupança':'var(--cyan)','Transporte':'#ff8a5c','Lazer':'#ec6cff','Outros':'var(--txt-3)'};
@@ -1755,13 +1757,13 @@ function viewShape(m){
       ${shapeResult?`
         <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
-            <b style="font-size:14px">${shapeResult.score}/10 — ${shapeResult.label}</b>
-            <span style="font-size:11.5px;color:var(--txt-3)">${shapeResult.date}</span>
+            <b style="font-size:14px">${+shapeResult.score}/10 — ${esc(shapeResult.label)}</b>
+            <span style="font-size:11.5px;color:var(--txt-3)">${esc(shapeResult.date)}</span>
           </div>
           <div class="shape-zones">
-            ${shapeResult.zones.map(z=>`<div class="zone-card"><span class="zic">${z.ic}</span><div class="zn">${z.n}</div><div class="zv" style="color:${z.c}">${z.v}</div></div>`).join('')}
+            ${shapeResult.zones.map(z=>`<div class="zone-card"><span class="zic">${esc(z.ic)}</span><div class="zn">${esc(z.n)}</div><div class="zv" style="color:${safeColor(z.c)}">${esc(z.v)}</div></div>`).join('')}
           </div>
-          <div style="margin-top:12px;padding:12px;background:var(--bg);border-radius:11px;font-size:13px;line-height:1.5;color:var(--txt-2)">${shapeResult.advice}</div>
+          <div style="margin-top:12px;padding:12px;background:var(--bg);border-radius:11px;font-size:13px;line-height:1.5;color:var(--txt-2)">${esc(shapeResult.advice)}</div>
           <button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="localStorage.removeItem('vtz_shape_result');render()">Limpar</button>
         </div>`:'<div style="color:var(--txt-3);font-size:13px;text-align:center;padding:16px 0">Nenhuma avaliação ainda.</div>'}
     </div>
@@ -1785,8 +1787,8 @@ function viewShape(m){
 function renderPratoResult(d){
   return `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
-      <b style="font-size:14px">${d.nome||'Refeição analisada'}</b>
-      <span style="font-size:11.5px;color:var(--txt-3)">${d.date}</span>
+      <b style="font-size:14px">${esc(d.nome||'Refeição analisada')}</b>
+      <span style="font-size:11.5px;color:var(--txt-3)">${esc(d.date)}</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
       <div style="padding:10px;background:rgba(109,94,252,.12);border-radius:10px;text-align:center">
@@ -1810,13 +1812,13 @@ function renderPratoResult(d){
       <b style="font-size:12px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.06em">Itens identificados</b>
       <div style="margin-top:6px">${d.itens.map(i=>`
         <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line)">
-          <span>${i.n}</span>
-          <span style="color:var(--txt-3);font-family:var(--mono);font-size:11.5px">${i.kcal}kcal · P${i.p}g C${i.c}g G${i.g}g</span>
+          <span>${esc(i.n)}</span>
+          <span style="color:var(--txt-3);font-family:var(--mono);font-size:11.5px">${+i.kcal||0}kcal · P${+i.p||0}g C${+i.c||0}g G${+i.g||0}g</span>
         </div>`).join('')}
       </div></div>`:''}
     ${d.micros?`<div style="padding:10px 12px;background:var(--bg);border-radius:10px;font-size:12.5px;color:var(--txt-2);line-height:1.7;margin-bottom:8px">
-      <b style="display:block;color:var(--txt);margin-bottom:4px">🔬 Micronutrientes estimados</b>${d.micros}</div>`:''}
-    ${d.avaliacao?`<div style="padding:10px 12px;background:rgba(109,94,252,.08);border-radius:10px;font-size:13px;color:var(--accent-2);line-height:1.5">${d.avaliacao}</div>`:''}
+      <b style="display:block;color:var(--txt);margin-bottom:4px">🔬 Micronutrientes estimados</b>${esc(d.micros)}</div>`:''}
+    ${d.avaliacao?`<div style="padding:10px 12px;background:rgba(109,94,252,.08);border-radius:10px;font-size:13px;color:var(--accent-2);line-height:1.5">${esc(d.avaliacao)}</div>`:''}
     <button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="localStorage.removeItem('vtz_prato_result');render()">Limpar</button>
   </div>`;
 }
@@ -1913,11 +1915,11 @@ function renderDietaResult(d){
   return `<b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">Plano de hoje</b>
   ${d.refeicoes?d.refeicoes.map(r=>`
     <div style="padding:12px;background:var(--bg);border-radius:12px;margin-bottom:10px">
-      <b style="font-size:13.5px">${r.nome}</b>
-      <p style="font-size:12.5px;color:var(--txt-2);margin-top:4px;line-height:1.5">${r.itens}</p>
-      ${r.kcal?`<span style="font-size:11.5px;color:var(--amber);font-weight:600">~${r.kcal} kcal</span>`:''}
-    </div>`).join(''):`<p style="color:var(--txt-2);font-size:13.5px;line-height:1.6;white-space:pre-wrap">${d.raw||d}</p>`}
-  <div style="margin-top:12px;padding:10px 14px;background:rgba(33,217,122,.1);border-radius:10px;font-size:12.5px;color:var(--green)">${d.dica||''}</div>`;
+      <b style="font-size:13.5px">${esc(r.nome)}</b>
+      <p style="font-size:12.5px;color:var(--txt-2);margin-top:4px;line-height:1.5">${esc(r.itens)}</p>
+      ${r.kcal?`<span style="font-size:11.5px;color:var(--amber);font-weight:600">~${+r.kcal||0} kcal</span>`:''}
+    </div>`).join(''):`<p style="color:var(--txt-2);font-size:13.5px;line-height:1.6;white-space:pre-wrap">${esc(String(d.raw||d))}</p>`}
+  <div style="margin-top:12px;padding:10px 14px;background:rgba(33,217,122,.1);border-radius:10px;font-size:12.5px;color:var(--green)">${esc(d.dica||'')}</div>`;
 }
 async function gerarDieta(){
   const ingr=document.getElementById('dietIngr').value.trim();
