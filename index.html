@@ -1049,25 +1049,78 @@ function habitCard(h){
       <button class="check ${h.log[todayISO()]?'done':''}" onclick="toggleHabit(${h.id})">
         <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></button>
     </div>
-    <div style="font-size:12px;color:var(--txt-3)">${streakOf(h)} dias seguidos</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+      <span style="font-size:12px;color:var(--txt-3)">${streakOf(h)} dias seguidos</span>
+      ${h.notifEnabled&&h.notifTime?`<span style="font-size:11px;color:var(--amber);font-weight:700;display:flex;align-items:center;gap:3px;margin-left:auto">🔔 ${h.notifTime}</span>`:''}
+    </div>
     <div class="habit-grid">${days.map(c=>`<span class="hc ${c}"></span>`).join('')}</div></div>`;
 }
 function openHabit(id){
   const h=id?S.habits.find(x=>x.id===id):null;
+  const notifOn=h?.notifEnabled??false;
+  _hNotifOn=notifOn;
   modal(`<h3>${h?'Editar hábito':'Novo hábito'}</h3><p class="ms">Algo para fazer todos os dias</p>
-    <div class="fgrid" style="grid-template-columns:80px 1fr">
+    <div class="fgrid" style="grid-template-columns:80px 1fr;margin-bottom:0">
       <div class="frow"><label class="fl">Ícone</label><input class="input" id="hI" maxlength="2" style="text-align:center;font-size:20px" value="${h?h.icon:'✅'}"></div>
       <div class="frow"><label class="fl">Nome</label><input class="input" id="hN" placeholder="Ex: Meditar 10min" value="${h?esc(h.name):''}"></div>
+    </div>
+    <div class="frow" style="margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <label class="fl" style="margin:0">🔔 Lembrete diário</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <span style="font-size:12px;color:var(--txt-3)" id="hNotifLbl">${notifOn?'Ativado':'Desativado'}</span>
+          <div onclick="toggleHabitNotif()" id="hNotifToggle" style="width:42px;height:24px;border-radius:12px;background:${notifOn?'var(--accent)':'var(--line-2)'};position:relative;transition:.2s;cursor:pointer;flex-shrink:0">
+            <div style="position:absolute;top:3px;left:${notifOn?'21px':'3px'};width:18px;height:18px;border-radius:9px;background:#fff;transition:.2s"></div>
+          </div>
+        </label>
+      </div>
+      <div id="hNotifFields" style="display:${notifOn?'block':'none'}">
+        <div class="fgrid" style="margin-bottom:12px">
+          <div><label class="fl">Horário</label><input type="time" class="input" id="hTime" value="${h?.notifTime||'07:00'}"></div>
+          <div><label class="fl">Voz ativa</label>
+            <select class="input" id="hVoice">
+              <option value="1" ${h?.notifVoice!==false?'selected':''}>🔊 Falar também</option>
+              <option value="0" ${h?.notifVoice===false?'selected':''}>🔕 Só notificação</option>
+            </select>
+          </div>
+        </div>
+        <div><label class="fl">Mensagem personalizada</label>
+          <input class="input" id="hMsg" placeholder="Ex: Bora treinar, sem desculpa!" value="${esc(h?.notifMsg||'')}">
+          <div style="font-size:11.5px;color:var(--txt-3);margin-top:5px">Em branco = usa mensagem padrão</div>
+        </div>
+      </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveHabit(${id||0})">${h?'Salvar':'Adicionar'}</button></div>`);
   setTimeout(()=>$('#hN')?.focus(),50);
 }
-function saveHabit(id){const name=$('#hN').value.trim();if(!name)return;
+let _hNotifOn=false;
+function toggleHabitNotif(){
+  _hNotifOn=!_hNotifOn;
+  const tog=document.getElementById('hNotifToggle');
+  const lbl=document.getElementById('hNotifLbl');
+  const fields=document.getElementById('hNotifFields');
+  if(tog){tog.style.background=_hNotifOn?'var(--accent)':'var(--line-2)';
+    tog.children[0].style.left=_hNotifOn?'21px':'3px';}
+  if(lbl)lbl.textContent=_hNotifOn?'Ativado':'Desativado';
+  if(fields)fields.style.display=_hNotifOn?'block':'none';
+  if(_hNotifOn&&Notification.permission==='default')
+    Notification.requestPermission().then(r=>{if(r==='granted')toast('Notificações ativadas','🔔');});
+}
+
+function saveHabit(id){
+  const name=$('#hN').value.trim();if(!name)return;
   const icon=$('#hI').value.trim()||'✅';
-  if(id){Object.assign(S.habits.find(x=>x.id===id),{name,icon});toast('Hábito atualizado','✏️')}
-  else{S.habits.push({id:uid(),name,icon,log:{}});toast('Hábito criado','✅')}
-  save();closeModal();render()}
+  const notifEnabled=_hNotifOn;
+  const notifTime=$('#hTime')?.value||'07:00';
+  const notifMsg=$('#hMsg')?.value.trim()||'';
+  const notifVoice=$('#hVoice')?.value!=='0';
+  const data={name,icon,notifEnabled,notifTime,notifMsg,notifVoice};
+  if(id){Object.assign(S.habits.find(x=>x.id===id),data);toast('Hábito atualizado','✏️')}
+  else{S.habits.push({id:uid(),...data,log:{}});toast('Hábito criado','✅')}
+  save();closeModal();render();
+  _hNotifOn=false;
+}
 function delHabit(id){S.habits=S.habits.filter(x=>x.id!==id);save();render();toast('Hábito removido','🗑️')}
 
 /* Drag & drop kanban */
@@ -2170,8 +2223,36 @@ function reqNotifPerm(){
   if(Notification.permission==='default')Notification.requestPermission().then(r=>{
     if(r==='granted')toast('Notificações ativadas','🔔');
     initHydration();
+    initHabitNotifs();
   });
-  else initHydration();
+  else{initHydration();initHabitNotifs();}
+}
+
+/* Scheduler de hábitos — checa a cada minuto */
+let _habitNotifTimer=null;
+let _habitNotifLastFired={};
+function initHabitNotifs(){
+  if(_habitNotifTimer)return;
+  _habitNotifTimer=setInterval(()=>{
+    if(Notification.permission!=='granted')return;
+    const now=new Date();
+    const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const today=todayISO();
+    S.habits.forEach(h=>{
+      if(!h.notifEnabled||!h.notifTime)return;
+      if(h.notifTime!==timeStr)return;
+      // dispara só 1x por hábito por dia (mesmo que o timer rode 2x no mesmo minuto)
+      const key=h.id+'_'+today+'_'+timeStr;
+      if(_habitNotifLastFired[key])return;
+      _habitNotifLastFired[key]=true;
+      const msg=h.notifMsg||'Hora de: '+h.name+'! Não perde o streak.';
+      new Notification(h.icon+' VTz Life — Hábito',{body:msg,icon:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2264%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%236d5efc%22/%3E%3C/svg%3E'});
+      if(h.notifVoice!==false)speak(msg);
+    });
+    // limpa cache de datas antigas
+    const keys=Object.keys(_habitNotifLastFired);
+    if(keys.length>200)keys.slice(0,100).forEach(k=>delete _habitNotifLastFired[k]);
+  },60*1000);
 }
 function addCup(){
   const k='vtz_cups_'+todayISO();
