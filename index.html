@@ -327,6 +327,86 @@ body.light .sidebar{background:linear-gradient(180deg,#fff,#f4f5fa)}
   .mnav-item.active{color:var(--accent-2)}
 }
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+
+/* ---------- JARVIS CHAT ---------- */
+.jarvis-fab{position:fixed;bottom:70px;right:22px;z-index:80;width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--cyan));color:#fff;font-size:22px;
+  box-shadow:0 8px 28px -6px var(--accent-glow);transition:.2s;display:grid;place-items:center}
+.jarvis-fab:hover{transform:scale(1.1)}
+@media(max-width:760px){.jarvis-fab{bottom:calc(76px + env(safe-area-inset-bottom))}}
+.jarvis-overlay{position:fixed;bottom:136px;right:22px;z-index:80;width:340px;max-width:92vw;
+  background:var(--panel-2);border:1px solid var(--line-2);border-radius:20px;
+  box-shadow:var(--shadow);display:none;flex-direction:column;overflow:hidden}
+.jarvis-overlay.open{display:flex}
+@media(max-width:760px){.jarvis-overlay{bottom:calc(148px + env(safe-area-inset-bottom));right:10px;left:10px;width:auto}}
+.jarvis-hdr{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(109,94,252,.18),rgba(63,216,224,.08))}
+.jarvis-hdr b{font-family:var(--display);font-size:15px}
+.jarvis-hdr .jclose{margin-left:auto;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+  color:var(--txt-3);transition:.15s}
+.jarvis-hdr .jclose:hover{background:var(--line);color:var(--txt)}
+.jarvis-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;max-height:320px;min-height:80px}
+.jmsg{padding:9px 12px;border-radius:13px;font-size:13.5px;line-height:1.5;max-width:90%}
+.jmsg.bot{background:var(--panel);border:1px solid var(--line);align-self:flex-start}
+.jmsg.usr{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;align-self:flex-end}
+.jmsg.loading{color:var(--txt-3);font-style:italic}
+.jarvis-inp{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.jarvis-inp input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:10px;
+  padding:9px 12px;font-size:13.5px;transition:.15s}
+.jarvis-inp input:focus{border-color:var(--accent)}
+.jarvis-inp button{background:var(--accent);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;transition:.15s}
+.jarvis-inp button:hover{background:var(--accent-2)}
+
+/* ---------- MISSÕES ---------- */
+.mission-item{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:14px;
+  background:var(--bg);border:1px solid var(--line);margin-bottom:9px;transition:.15s}
+.mission-item.done{opacity:.55}
+.mission-item .mic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.mission-item .mbody{flex:1}
+.mission-item .mt{font-weight:600;font-size:14.5px}
+.mission-item .mm{font-size:12px;color:var(--txt-3);margin-top:2px}
+.mission-item .mxp{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--amber)}
+.mbar-wrap{margin-top:16px}
+.mbar-wrap .mbar-lbl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px}
+.mbar-wrap .mbar{height:10px;background:var(--line);border-radius:10px;overflow:hidden}
+.mbar-wrap .mbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:10px;transition:width .5s}
+
+/* ---------- FOCO / POMODORO ---------- */
+.pomo-ring{display:flex;flex-direction:column;align-items:center;gap:20px;padding:30px 0}
+.pomo-time{font-family:var(--display);font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.pomo-label{font-size:14px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.12em}
+.pomo-btns{display:flex;gap:12px}
+
+/* ---------- SHAPE ---------- */
+.shape-zones{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.zone-card{padding:14px;border-radius:13px;background:var(--bg);border:1px solid var(--line);text-align:center}
+.zone-card .zic{font-size:28px;display:block;margin-bottom:6px}
+.zone-card .zn{font-size:12px;font-weight:600;color:var(--txt-2)}
+.zone-card .zv{font-family:var(--display);font-size:22px;font-weight:700;margin-top:2px}
+
+/* ---------- DIETA ---------- */
+.macro-bar{margin-bottom:12px}
+.macro-bar .mb-lbl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.macro-bar .mb-track{height:8px;background:var(--line);border-radius:8px;overflow:hidden}
+.macro-bar .mb-track i{display:block;height:100%;border-radius:8px;transition:width .4s}
+
+/* ---------- BIBLIOTECA ---------- */
+.book-card{padding:16px;cursor:pointer;transition:.15s}
+.book-card:hover{border-color:var(--accent)}
+.book-card .bk-title{font-family:var(--display);font-size:15px;font-weight:700}
+.book-card .bk-author{font-size:12.5px;color:var(--txt-3);margin-top:3px}
+.book-card .bk-prog{height:4px;background:var(--line);border-radius:4px;margin-top:12px;overflow:hidden}
+.book-card .bk-prog i{display:block;height:100%;background:var(--accent);border-radius:4px}
+
+/* ---------- HIDRATAÇÃO ---------- */
+.cups-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-top:14px}
+.cup{font-size:26px;cursor:pointer;text-align:center;transition:.2s;filter:grayscale(1);opacity:.4}
+.cup.filled{filter:none;opacity:1;transform:scale(1.1)}
+
+/* ---------- PREDIÇÃO ---------- */
+.pred-box{padding:18px;border-radius:14px;background:var(--bg);border:1px solid var(--line);text-align:center;margin-bottom:10px}
+.pred-box .pb-val{font-family:var(--display);font-size:36px;font-weight:800;color:var(--green)}
+.pred-box .pb-lbl{font-size:12.5px;color:var(--txt-3);margin-top:4px}
 </style>
 </head>
 <body>
@@ -356,6 +436,22 @@ body.light .sidebar{background:linear-gradient(180deg,#fff,#f4f5fa)}
       <button class="nav-item" data-view="financeiro">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
         Financeiro</button>
+      <div class="nav-label">Expansão</div>
+      <button class="nav-item" data-view="missoes">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Missões</button>
+      <button class="nav-item" data-view="foco">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Modo Foco</button>
+      <button class="nav-item" data-view="dieta">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
+        Dieta Inteligente</button>
+      <button class="nav-item" data-view="shape">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>
+        Olho do Toji</button>
+      <button class="nav-item" data-view="biblioteca">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 7H20v13H6.5A2.5 2.5 0 014 17.5v-13z"/></svg>
+        Biblioteca VTZ</button>
       <div class="nav-label">Sistema</div>
       <button class="nav-item" data-view="config">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -411,6 +507,23 @@ body.light .sidebar{background:linear-gradient(180deg,#fff,#f4f5fa)}
     <button class="mnav-item" data-view="config">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82M4.6 9a1.65 1.65 0 01-.33-1.82"/></svg>Config</button>
   </nav>
+</div>
+
+<!-- JARVIS -->
+<button class="jarvis-fab" id="jarvisFab" onclick="toggleJarvis()" title="JARVIS">🤖</button>
+<div class="jarvis-overlay" id="jarvisOverlay">
+  <div class="jarvis-hdr">
+    <span style="font-size:20px">🤖</span>
+    <div><b>JARVIS</b><div style="font-size:11px;color:var(--txt-3)">Assistente VTz</div></div>
+    <button class="jclose" onclick="toggleJarvis()">✕</button>
+  </div>
+  <div class="jarvis-msgs" id="jarvisMsgs">
+    <div class="jmsg bot">Olá, Victor. Pronto pra te ajudar. Pergunte qualquer coisa sobre seus dados, treinos, finanças ou estratégias.</div>
+  </div>
+  <div class="jarvis-inp">
+    <input id="jarvisIn" placeholder="Pergunte ao JARVIS…" onkeydown="if(event.key==='Enter')jarvisSend()">
+    <button onclick="jarvisSend()">↑</button>
+  </div>
 </div>
 
 <div class="modal-bg" id="modalBg"><div class="modal" id="modalBox"></div></div>
@@ -633,7 +746,9 @@ $('#modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal
    ROUTER
    ================================================================= */
 const TITLES={dashboard:'Dashboard',tarefas:'Tarefas & Hábitos',agenda:'Agenda',
-  treino:'Treino',financeiro:'Financeiro',config:'Configurações'};
+  treino:'Treino',financeiro:'Financeiro',config:'Configurações',
+  missoes:'Missões Diárias',foco:'Modo Foco Extremo',dieta:'Dieta Inteligente',
+  shape:'Olho do Toji — Shape',biblioteca:'Biblioteca VTZ'};
 let currentView='dashboard';window.currentView=currentView;
 function go(v){
   currentView=v;window.currentView=v;
@@ -650,7 +765,9 @@ function render(){
   const m=$('#main');
   m.innerHTML='';
   ({dashboard:viewDashboard,tarefas:viewTarefas,agenda:viewAgenda,
-    treino:viewTreino,financeiro:viewFinance,config:viewConfig}[currentView])(m);
+    treino:viewTreino,financeiro:viewFinance,config:viewConfig,
+    missoes:viewMissoes,foco:viewFoco,dieta:viewDieta,
+    shape:viewShape,biblioteca:viewBiblioteca}[currentView])(m);
   renderStatus();
 }
 
@@ -1340,6 +1457,604 @@ document.addEventListener('keydown',e=>{
     else if(currentView==='treino')openEx();
     else openTask();}
 });
+
+/* =================================================================
+   ABACUS AI — helper central
+   ================================================================= */
+async function getAbacusKey(){
+  let k=localStorage.getItem('vtz_abacus_key');
+  if(k)return k;
+  if(SYNC.user&&SYNC.db){
+    try{const {doc,getDoc}=window.FB;
+      const snap=await getDoc(doc(SYNC.db,'users',SYNC.user.uid));
+      if(snap.exists()&&snap.data().state?.abacusKey){
+        k=snap.data().state.abacusKey;
+        localStorage.setItem('vtz_abacus_key',k);return k;
+      }
+    }catch(e){}
+  }
+  if(S.abacusKey){localStorage.setItem('vtz_abacus_key',S.abacusKey);return S.abacusKey;}
+  return null;
+}
+async function callAbacus(msgs,maxTok=300){
+  const key=await getAbacusKey();
+  if(!key)throw new Error('Chave Abacus não configurada. Vá em Configurações → Abacus AI Key.');
+  const r=await fetch('https://routellm.abacus.ai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'route-llm',messages:[
+      {role:'system',content:'Seja direto, use listas, sem introduções. Vá ao ponto. Responda sempre em português.'},
+      ...msgs],max_tokens:maxTok})
+  });
+  if(!r.ok)throw new Error('API error: '+r.status);
+  const d=await r.json();
+  return d.choices?.[0]?.message?.content||'(sem resposta)';
+}
+
+/* =================================================================
+   JARVIS CHAT
+   ================================================================= */
+let jarvisOpen=false;
+function toggleJarvis(){
+  jarvisOpen=!jarvisOpen;
+  document.getElementById('jarvisOverlay').classList.toggle('open',jarvisOpen);
+  if(jarvisOpen)setTimeout(()=>document.getElementById('jarvisIn')?.focus(),50);
+}
+async function jarvisSend(){
+  const inp=document.getElementById('jarvisIn');
+  const q=inp.value.trim();if(!q)return;
+  inp.value='';
+  const msgs=document.getElementById('jarvisMsgs');
+  msgs.innerHTML+=`<div class="jmsg usr">${esc(q)}</div>`;
+  const load=document.createElement('div');load.className='jmsg bot loading';load.textContent='Pensando…';
+  msgs.appendChild(load);msgs.scrollTop=msgs.scrollHeight;
+  const ctx=`Dados resumidos do usuário: XP=${S.xp}, tarefas hoje=${S.tasks.filter(t=>t.due===todayISO()).length}, `+
+    `hábitos=${S.habits.length}, saldo=R$${(S.finance.filter(f=>f.type==='in').reduce((a,b)=>a+b.val,0)-S.finance.filter(f=>f.type==='out').reduce((a,b)=>a+b.val,0)).toFixed(0)}, `+
+    `fichas treino=${S.fichas.length}. Pergunta: ${q}`;
+  try{
+    const r=await callAbacus([{role:'user',content:ctx}],300);
+    load.className='jmsg bot';load.textContent=r;
+    jarvisSaveMemory(q,r);
+  }catch(e){load.className='jmsg bot';load.textContent='⚠️ '+e.message;}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function jarvisSaveMemory(q,r){
+  const mem=JSON.parse(localStorage.getItem('vtz_jarvis_mem')||'[]');
+  mem.push({t:Date.now(),q:q.slice(0,80),r:r.slice(0,120)});
+  if(mem.length>50)mem.splice(0,mem.length-50);
+  localStorage.setItem('vtz_jarvis_mem',JSON.stringify(mem));
+}
+
+/* =================================================================
+   MISSÕES DIÁRIAS GAMIFICADAS
+   ================================================================= */
+const MISSION_TEMPLATES=[
+  {id:'t1',icon:'💪',title:'Concluir 1 treino',desc:'Finalize qualquer treino hoje',xp:40,check:()=>S.habits.find(h=>h.name==='Treinar')?.log[todayISO()]},
+  {id:'t2',icon:'📖',title:'Ler Bíblia',desc:'Marque o hábito de leitura',xp:20,check:()=>S.habits.find(h=>h.name==='Ler Bíblia')?.log[todayISO()]},
+  {id:'t3',icon:'💧',title:'Beber 2L de água',desc:'Hidratação completa',xp:15,check:()=>S.habits.find(h=>h.name.includes('água'))?.log[todayISO()]},
+  {id:'t4',icon:'✅',title:'3 tarefas concluídas',desc:'Complete pelo menos 3 tarefas',xp:30,check:()=>S.tasks.filter(t=>t.done&&t.due===todayISO()).length>=3},
+  {id:'t5',icon:'💰',title:'Registrar finanças',desc:'Lance uma transação hoje',xp:10,check:()=>S.finance.some(f=>f.date===todayISO())},
+  {id:'t6',icon:'🏆',title:'Score acima de 70',desc:'Mantenha o score do dia em 70+',xp:50,check:()=>{
+    const s=Math.round((todayPct()*.4)+(Math.min(streakCount(),14)/14*100*.3)+(S.habits.filter(h=>h.log[todayISO()]).length/S.habits.length*100*.3));
+    return s>=70;}},
+  {id:'t7',icon:'🧘',title:'Todos os hábitos',desc:'Complete 100% dos hábitos',xp:35,check:()=>S.habits.every(h=>h.log[todayISO()])},
+  {id:'t8',icon:'📅',title:'Agendar evento',desc:'Planeje algo para os próximos dias',xp:10,check:()=>S.events.some(e=>e.date>todayISO())},
+];
+function getTodayMissions(){
+  const dayIndex=new Date().getDay();
+  const sel=[MISSION_TEMPLATES[dayIndex%MISSION_TEMPLATES.length],
+    MISSION_TEMPLATES[(dayIndex+2)%MISSION_TEMPLATES.length],
+    MISSION_TEMPLATES[(dayIndex+4)%MISSION_TEMPLATES.length],
+    MISSION_TEMPLATES[(dayIndex+6)%MISSION_TEMPLATES.length]];
+  return sel;
+}
+function viewMissoes(m){
+  const missions=getTodayMissions();
+  const done=missions.filter(ms=>ms.check()).length;
+  const pct=Math.round(done/missions.length*100);
+  m.innerHTML=`
+  <div class="section-head">
+    <div><h2>Missões Diárias</h2><p>Objetivos gamificados — renovam toda meia-noite</p></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="mbar-wrap">
+      <div class="mbar-lbl"><span>Progresso do dia</span><b>${done}/${missions.length} missões</b></div>
+      <div class="mbar"><i style="width:${pct}%"></i></div>
+    </div>
+  </div>
+  ${missions.map(ms=>{const ok=ms.check();return `
+    <div class="mission-item ${ok?'done':''}">
+      <div class="mic" style="background:${ok?'rgba(33,217,122,.15)':'var(--panel)'};">${ms.icon}</div>
+      <div class="mbody">
+        <div class="mt" style="${ok?'text-decoration:line-through;color:var(--txt-3)':''}"><b>${ms.title}</b></div>
+        <div class="mm">${ms.desc}</div>
+      </div>
+      <div class="mxp">+${ms.xp} XP${ok?' ✓':''}</div>
+    </div>`}).join('')}
+  <div class="card" style="margin-top:16px;background:linear-gradient(150deg,rgba(109,94,252,.1),var(--bg-2))">
+    <b style="font-family:var(--display)">💡 Dica anti-procrastinação</b>
+    <p style="color:var(--txt-2);font-size:13.5px;margin-top:8px;line-height:1.5">
+    ${done===missions.length?'🔥 Todas as missões concluídas! Você está dominando o dia.':
+      done>=2?'Ótimo ritmo! Faltam só '+(missions.length-done)+' missões. Continue.':
+      'Escolha a missão mais fácil agora e use 2 minutos para começar. Apenas comece.'}</p>
+  </div>`;
+}
+
+/* =================================================================
+   MODO FOCO EXTREMO / POMODORO
+   ================================================================= */
+let pomoState={running:false,work:25,rest:5,round:1,phase:'work',secs:25*60,timer:null};
+function viewFoco(m){
+  const mins=String(Math.floor(pomoState.secs/60)).padStart(2,'0');
+  const sec=String(pomoState.secs%60).padStart(2,'0');
+  const r=54,total=(pomoState.phase==='work'?pomoState.work:pomoState.rest)*60;
+  const c=2*Math.PI*r,off=c-(pomoState.secs/total)*c;
+  m.innerHTML=`
+  <div class="section-head">
+    <div><h2>Modo Foco Extremo</h2><p>Pomodoro com voz — elimine a procrastinação</p></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="pomo-ring">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="${r}" fill="none" stroke="var(--line)" stroke-width="10" transform="rotate(-90 90 90)"/>
+          <circle cx="90" cy="90" r="${r}" fill="none" stroke="${pomoState.phase==='work'?'var(--accent)':'var(--green)'}" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 90 90)"/>
+        </svg>
+        <div class="pomo-time" style="margin-top:-170px;position:relative;color:${pomoState.phase==='work'?'var(--accent-2)':'var(--green)'}">${mins}:${sec}</div>
+        <div style="height:60px"></div>
+        <div class="pomo-label">${pomoState.phase==='work'?'FOCO — Rodada '+pomoState.round:'DESCANSO'}</div>
+        <div class="pomo-btns">
+          <button class="btn ${pomoState.running?'btn-ghost':'btn-primary'}" onclick="${pomoState.running?'pomoPause()':'pomoStart()'}">
+            ${pomoState.running?'⏸ Pausar':'▶ Iniciar'}</button>
+          <button class="btn btn-ghost" onclick="pomoReset()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid" style="gap:14px">
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">Configurar</b>
+        <div class="frow" style="margin-bottom:12px"><label class="fl">Foco (min)</label>
+          <input type="number" class="input" id="pomoWork" value="${pomoState.work}" min="1" max="90" onchange="pomoSetWork(+this.value)"></div>
+        <div class="frow"><label class="fl">Descanso (min)</label>
+          <input type="number" class="input" id="pomoRest" value="${pomoState.rest}" min="1" max="30" onchange="pomoSetRest(+this.value)"></div>
+      </div>
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:10px">Estatísticas</b>
+        <div style="display:flex;gap:10px">
+          ${statCard('Rodadas',pomoState.round-1,'concluídas','var(--accent-2)','var(--accent)','rgba(109,94,252,.13)','<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>')}
+        </div>
+        <p style="font-size:12.5px;color:var(--txt-3);margin-top:12px;line-height:1.5">Alertas de voz ativados. Você vai ouvir avisos ao trocar de fase.</p>
+      </div>
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:10px">Bloqueio mental</b>
+        <p style="font-size:13.5px;color:var(--txt-2);line-height:1.55;margin-bottom:12px">
+          "Só 25 minutos. Coloca o telefone longe, fecha as abas desnecessárias e começa."</p>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="speak('Foco total. Você tem '+pomoState.work+' minutos. Elimine distrações agora. Vamos.')">
+          🔊 Motivação por voz</button>
+      </div>
+    </div>
+  </div>`;
+}
+function pomoStart(){
+  if(pomoState.running)return;
+  pomoState.running=true;
+  speak('Iniciando foco. '+pomoState.work+' minutos. Concentre-se.');
+  pomoState.timer=setInterval(()=>{
+    pomoState.secs--;
+    if(pomoState.secs<=0){
+      if(pomoState.phase==='work'){
+        pomoState.phase='rest';pomoState.secs=pomoState.rest*60;
+        speak('Tempo de foco encerrado. Descanse '+pomoState.rest+' minutos.');
+        addXp(20);
+      } else {
+        pomoState.phase='work';pomoState.round++;pomoState.secs=pomoState.work*60;
+        speak('Descanso encerrado. Iniciando rodada '+pomoState.round+'. Foco total.');
+      }
+    }
+    if(currentView==='foco')render();
+  },1000);
+  render();
+}
+function pomoPause(){clearInterval(pomoState.timer);pomoState.running=false;render()}
+function pomoReset(){clearInterval(pomoState.timer);
+  pomoState={...pomoState,running:false,round:1,phase:'work',secs:pomoState.work*60,timer:null};render()}
+function pomoSetWork(v){if(!pomoState.running&&v>0){pomoState.work=v;pomoState.secs=v*60;render()}}
+function pomoSetRest(v){if(!pomoState.running&&v>0){pomoState.rest=v;render()}}
+
+/* =================================================================
+   WEB SPEECH API — voz
+   ================================================================= */
+function speak(text){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='pt-BR';u.rate=1.05;u.pitch=1;
+  window.speechSynthesis.speak(u);
+}
+
+/* =================================================================
+   SHAPE — OLHO DO TOJI
+   ================================================================= */
+function viewShape(m){
+  const result=JSON.parse(localStorage.getItem('vtz_shape_result')||'null');
+  m.innerHTML=`
+  <div class="section-head">
+    <div><h2>Olho do Toji — Shape</h2><p>Avaliação física com IA</p></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">Enviar foto para análise</b>
+      <p style="color:var(--txt-3);font-size:13px;line-height:1.5;margin-bottom:14px">
+        A foto é comprimida localmente e enviada apenas para análise. Não é armazenada.</p>
+      <label class="btn btn-primary" style="cursor:pointer;justify-content:center;width:100%">
+        📸 Selecionar foto
+        <input type="file" accept="image/*" capture="environment" onchange="shapeAnalyze(event)" style="display:none">
+      </label>
+      <canvas id="shapeCanvas" style="display:none"></canvas>
+      <div id="shapeLoading" style="display:none;text-align:center;padding:20px;color:var(--txt-3)">
+        🤖 Analisando com IA…</div>
+    </div>
+    <div class="card">
+      ${result?`
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">Último resultado — ${result.date}</b>
+        <div style="color:var(--txt-3);font-size:12px;margin-bottom:14px">${result.score}/10 — ${result.label}</div>
+        <div class="shape-zones">
+          ${result.zones.map(z=>`<div class="zone-card"><span class="zic">${z.ic}</span><div class="zn">${z.n}</div><div class="zv" style="color:${z.c}">${z.v}</div></div>`).join('')}
+        </div>
+        <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:12px;font-size:13.5px;line-height:1.5;color:var(--txt-2)">${result.advice}</div>
+        <button class="btn btn-ghost" style="margin-top:12px" onclick="localStorage.removeItem('vtz_shape_result');render()">Limpar resultado</button>
+      `:`<div class="empty" style="padding:40px 20px">
+        <span style="font-size:40px;display:block;margin-bottom:10px">👁️</span>
+        <div>Envie uma foto para a IA analisar seu shape.</div>
+        </div>`}
+    </div>
+  </div>`;
+}
+async function shapeAnalyze(e){
+  const file=e.target.files[0];if(!file)return;
+  document.getElementById('shapeLoading').style.display='block';
+  const canvas=document.getElementById('shapeCanvas');
+  const img=new Image();
+  img.onload=async()=>{
+    const max=600;const scale=Math.min(max/img.width,max/img.height,1);
+    canvas.width=img.width*scale;canvas.height=img.height*scale;
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    const b64=canvas.toDataURL('image/jpeg',.7).split(',')[1];
+    try{
+      const r=await callAbacus([{role:'user',content:[
+        {type:'text',text:'Analise esta foto de corpo/físico. Retorne JSON com: score(0-10), label(ex:"bom progresso"), zones=[{ic,n,v,c}] (3 zonas: ombro/peito, abdome, pernas, usando emojis e cores CSS), advice(string curta de feedback direto). Seja direto e honesto.'},
+        {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64}}
+      ]}],400);
+      let parsed;
+      try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}
+      catch{parsed={score:5,label:'análise concluída',zones:[{ic:'💪',n:'Superioir',v:'ok',c:'var(--amber)'},{ic:'🔥',n:'Core',v:'em progresso',c:'var(--amber)'},{ic:'🦵',n:'Inferior',v:'ok',c:'var(--green)'}],advice:r.slice(0,200)}}
+      parsed.date=new Date().toLocaleDateString('pt-BR');
+      localStorage.setItem('vtz_shape_result',JSON.stringify(parsed));
+      toast('Shape analisado!','👁️');addXp(15);render();
+    }catch(err){toast('Erro: '+err.message,'⚠️');document.getElementById('shapeLoading').style.display='none';}
+  };
+  img.src=URL.createObjectURL(file);
+}
+
+/* =================================================================
+   DIETA INTELIGENTE
+   ================================================================= */
+function viewDieta(m){
+  const cached=JSON.parse(localStorage.getItem('vtz_dieta_'+todayISO())||'null');
+  const ingr=localStorage.getItem('vtz_ingredientes')||'';
+  m.innerHTML=`
+  <div class="section-head">
+    <div><h2>Dieta Inteligente</h2><p>Plano alimentar baseado no que você tem</p></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">Ingredientes disponíveis</b>
+      <p style="font-size:13px;color:var(--txt-3);margin-bottom:12px">Liste o que tem em casa — vírgula separando</p>
+      <textarea class="input" id="dietIngr" rows="5" placeholder="frango, arroz, feijão, ovo, batata doce, brócolis…" style="resize:vertical">${esc(ingr)}</textarea>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="gerarDieta()">
+        🧠 Gerar plano do dia</button>
+      ${cached?`<p style="font-size:12px;color:var(--txt-3);margin-top:8px;text-align:center">Cache do dia em uso — clique em "Gerar" para atualizar</p>`:''}
+    </div>
+    <div class="card" id="dietResult">
+      ${cached?renderDietaResult(cached):`<div class="empty" style="padding:40px 20px">
+        <span style="font-size:36px;display:block;margin-bottom:10px">🥗</span>
+        <div>Informe seus ingredientes e gere o plano do dia.</div></div>`}
+    </div>
+  </div>`;
+}
+function renderDietaResult(d){
+  return `<b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">Plano de hoje</b>
+  ${d.refeicoes?d.refeicoes.map(r=>`
+    <div style="padding:12px;background:var(--bg);border-radius:12px;margin-bottom:10px">
+      <b style="font-size:13.5px">${r.nome}</b>
+      <p style="font-size:12.5px;color:var(--txt-2);margin-top:4px;line-height:1.5">${r.itens}</p>
+      ${r.kcal?`<span style="font-size:11.5px;color:var(--amber);font-weight:600">~${r.kcal} kcal</span>`:''}
+    </div>`).join(''):`<p style="color:var(--txt-2);font-size:13.5px;line-height:1.6;white-space:pre-wrap">${d.raw||d}</p>`}
+  <div style="margin-top:12px;padding:10px 14px;background:rgba(33,217,122,.1);border-radius:10px;font-size:12.5px;color:var(--green)">${d.dica||''}</div>`;
+}
+async function gerarDieta(){
+  const ingr=document.getElementById('dietIngr').value.trim();
+  if(!ingr){toast('Liste os ingredientes primeiro','⚠️');return;}
+  localStorage.setItem('vtz_ingredientes',ingr);
+  const btn=document.querySelector('#main .btn-primary');
+  if(btn){btn.textContent='⏳ Gerando…';btn.disabled=true;}
+  try{
+    const txt=await callAbacus([{role:'user',content:`Crie um plano alimentar completo para hoje usando apenas estes ingredientes: ${ingr}.
+Retorne JSON: {refeicoes:[{nome,itens,kcal}],dica}. Use 4-5 refeições. Foco em ganho muscular para jovem de 17 anos treinando musculação.`}],500);
+    let parsed;
+    try{parsed=JSON.parse(txt.match(/\{[\s\S]*\}/)?.[0]||txt)}
+    catch{parsed={raw:txt,dica:'Plano gerado com sucesso.'}}
+    localStorage.setItem('vtz_dieta_'+todayISO(),JSON.stringify(parsed));
+    toast('Plano alimentar gerado!','🥗');addXp(10);render();
+  }catch(e){toast('Erro: '+e.message,'⚠️');if(btn){btn.textContent='🧠 Gerar plano do dia';btn.disabled=false;}}
+}
+
+/* =================================================================
+   BIBLIOTECA VTZ — AUDIOBOOKS (TTS)
+   ================================================================= */
+const BOOKS=[
+  {id:1,title:'Atomic Habits',author:'James Clear',desc:'Como hábitos de 1% constroem resultados extraordinários.',
+   content:`Capítulo 1: O surpreendente poder dos hábitos atômicos. Hábitos são os juros compostos do auto-aperfeiçoamento.
+   Se você ficar 1% melhor a cada dia por um ano, você acabará 37 vezes melhor.
+   Capítulo 2: Como os hábitos moldam sua identidade. A forma mais eficaz de mudar seus hábitos é focar em quem você quer se tornar, não no que você quer alcançar.`},
+  {id:2,title:'Os Provérbios',author:'Rei Salomão',desc:'Sabedoria para a vida prática e cotidiana.',
+   content:`Provérbios capítulo 1: O começo da sabedoria é o temor ao Senhor. Provérbios 3: Confie no Senhor de todo o seu coração e não se apoie no seu próprio entendimento.
+   Provérbios 16:32: O homem que governa o próprio espírito é melhor do que aquele que conquista uma cidade.`},
+  {id:3,title:'A Psicologia do Dinheiro',author:'Morgan Housel',desc:'Histórias sobre riqueza, ganância e felicidade.',
+   content:`Introdução: Ninguém é louco. Pessoas tomam decisões financeiras baseadas em suas experiências pessoais.
+   Capítulo 1: Seja humilde com suas previsões. A riqueza é o que você não gasta. É a opção de comprar coisas que você não gasta.
+   Tudo se resume a quanto você consegue sobreviver sem o que você tem.`},
+  {id:4,title:'Relentless',author:'Tim Grover',desc:'Do bom ao grande ao imparável.',
+   content:`Introdução: A maioria das pessoas satisfaz-se com "bom". Os grandes querem mais. Os imparáveis exigem o máximo.
+   Capítulo 1: Ser imparável não é sobre perfeição. É sobre trabalho consistente quando ninguém está olhando.
+   Disciplina é fazer o que você odeia com a mesma intensidade que faz o que ama.`},
+];
+let ttsState={bookId:null,playing:false,pos:0};
+function viewBiblioteca(m){
+  m.innerHTML=`
+  <div class="section-head">
+    <div><h2>Biblioteca VTZ</h2><p>Audiobooks com síntese de voz — ouça enquanto treina</p></div>
+  </div>
+  ${ttsState.bookId?playerCard():''}
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px;margin-top:${ttsState.bookId?16:0}px">
+    ${BOOKS.map(b=>{
+      const prog=+localStorage.getItem('vtz_book_prog_'+b.id)||0;
+      return `<div class="card book-card" onclick="openBook(${b.id})">
+        <div class="bk-title">${b.title}</div>
+        <div class="bk-author">${b.author}</div>
+        <p style="font-size:12.5px;color:var(--txt-3);margin-top:6px;line-height:1.4">${b.desc}</p>
+        <div class="bk-prog"><i style="width:${prog}%"></i></div>
+        <div style="font-size:11.5px;color:var(--txt-3);margin-top:4px">${prog}% lido</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function playerCard(){
+  const b=BOOKS.find(x=>x.id===ttsState.bookId);if(!b)return '';
+  return `<div class="card" style="background:linear-gradient(135deg,rgba(109,94,252,.12),var(--bg-2))">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:50px;height:50px;border-radius:12px;background:var(--accent);display:grid;place-items:center;font-size:24px">📚</div>
+      <div style="flex:1">
+        <b style="font-family:var(--display)">${b.title}</b>
+        <div style="font-size:12.5px;color:var(--txt-3)">${b.author}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ${ttsState.playing?'btn-ghost':'btn-primary'}" onclick="${ttsState.playing?'ttsPause()':'ttsPlay()'}">
+          ${ttsState.playing?'⏸ Pausar':'▶ Ouvir'}</button>
+        <button class="btn btn-ghost" onclick="ttsStop()">■ Parar</button>
+      </div>
+    </div>
+  </div>`;
+}
+function openBook(id){ttsState.bookId=id;ttsState.playing=false;ttsState.pos=0;render()}
+function ttsPlay(){
+  const b=BOOKS.find(x=>x.id===ttsState.bookId);if(!b)return;
+  ttsState.playing=true;render();
+  const u=new SpeechSynthesisUtterance(b.content.slice(ttsState.pos));
+  u.lang='pt-BR';u.rate=1.0;
+  u.onend=()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render();}
+  u.onboundary=e=>{ttsState.pos=e.charIndex;
+    const pct=Math.round(ttsState.pos/b.content.length*100);
+    localStorage.setItem('vtz_book_prog_'+b.id,pct);}
+  window.speechSynthesis.speak(u);
+}
+function ttsPause(){window.speechSynthesis.pause();ttsState.playing=false;render()}
+function ttsStop(){window.speechSynthesis.cancel();ttsState.playing=false;ttsState.bookId=null;render()}
+
+/* =================================================================
+   HIDRATAÇÃO COM VOZ
+   ================================================================= */
+let hydrationTimer=null;
+function initHydration(){
+  if(hydrationTimer)return;
+  hydrationTimer=setInterval(()=>{
+    const cups=+localStorage.getItem('vtz_cups_'+todayISO())||0;
+    if(cups<8){
+      speak('Lembrete: beba água agora. Você está em '+cups+' copos de 8 hoje.');
+      if(Notification.permission==='granted')
+        new Notification('💧 VTz Life',{body:'Hora de beber água! '+cups+'/8 copos'});
+    }
+  },60*60*1000); // 1 hora
+}
+function reqNotifPerm(){
+  if(Notification.permission==='default')Notification.requestPermission().then(r=>{
+    if(r==='granted')toast('Notificações ativadas','🔔');
+    initHydration();
+  });
+  else initHydration();
+}
+function addCup(){
+  const k='vtz_cups_'+todayISO();
+  const cups=Math.min(8,(+localStorage.getItem(k)||0)+1);
+  localStorage.setItem(k,cups);
+  if(cups===8){speak('Parabéns! Você completou os 8 copos de água hoje!');addXp(15);}
+  else speak(cups+' copos. Continue.');
+  if(currentView==='missoes'||currentView==='dashboard')render();
+  else toast('💧 '+cups+'/8 copos','💧');
+}
+
+/* embed cups in dashboard quick-actions — called via button */
+function getCups(){return+localStorage.getItem('vtz_cups_'+todayISO())||0}
+
+/* =================================================================
+   PLANEJAMENTO SEMANAL AUTOMÁTICO (Abacus, dom ingo → cache Firestore)
+   ================================================================= */
+async function getWeeklyPlan(){
+  const cacheKey='vtz_weekly_'+getMonday();
+  let cached=localStorage.getItem(cacheKey);
+  if(cached)return JSON.parse(cached);
+  if(SYNC.user&&SYNC.db){
+    try{const {doc,getDoc}=window.FB;
+      const snap=await getDoc(doc(SYNC.db,'cache','weekly_'+SYNC.user.uid));
+      if(snap.exists()&&snap.data().week===getMonday()){
+        localStorage.setItem(cacheKey,JSON.stringify(snap.data().plan));
+        return snap.data().plan;}
+    }catch(e){}
+  }
+  return null;
+}
+function getMonday(){
+  const d=new Date();const day=d.getDay();
+  d.setDate(d.getDate()-(day===0?6:day-1));return d.toISOString().slice(0,10);
+}
+async function generateWeeklyPlan(){
+  toast('Gerando planejamento semanal…','⏳');
+  const tasks=S.tasks.slice(-10).map(t=>t.title).join(', ');
+  const habits=S.habits.map(h=>h.name).join(', ');
+  const xp=S.xp;
+  try{
+    const r=await callAbacus([{role:'user',content:`Crie um planejamento semanal para Victor (17 anos, musculação, escola).
+Tarefas recentes: ${tasks}. Hábitos: ${habits}. XP: ${xp}.
+Retorne lista de prioridades por dia (seg-dom), com 3 focos por dia. Seja conciso.`}],600);
+    const cacheKey='vtz_weekly_'+getMonday();
+    const data={text:r,date:new Date().toLocaleDateString('pt-BR'),week:getMonday()};
+    localStorage.setItem(cacheKey,JSON.stringify(data));
+    if(SYNC.user&&SYNC.db){
+      try{const {doc,setDoc}=window.FB;
+        await setDoc(doc(SYNC.db,'cache','weekly_'+SYNC.user.uid),{plan:data,week:getMonday()});
+      }catch(e){}
+    }
+    toast('Planejamento gerado!','📅');addXp(10);
+    return data;
+  }catch(e){toast('Erro: '+e.message,'⚠️');return null;}
+}
+
+/* =================================================================
+   ANÁLISE FINANCEIRA COM JARVIS
+   ================================================================= */
+async function jarvisFinanceAnalysis(){
+  const inc=S.finance.filter(f=>f.type==='in').reduce((a,b)=>a+b.val,0);
+  const out=S.finance.filter(f=>f.type==='out').reduce((a,b)=>a+b.val,0);
+  const byCat={};S.finance.filter(f=>f.type==='out').forEach(f=>byCat[f.cat]=(byCat[f.cat]||0)+f.val);
+  const catStr=Object.entries(byCat).map(([c,v])=>`${c}:R$${v.toFixed(0)}`).join(', ');
+  toast('Analisando finanças…','🤖');
+  try{
+    const r=await callAbacus([{role:'user',content:`Analise as finanças: receitas=R$${inc.toFixed(0)}, gastos=R$${out.toFixed(0)}, categorias: ${catStr}.
+Dê feedback direto em 3 pontos: o que está bom, o que cortar, e uma ação imediata de economia.`}],200);
+    modal(`<h3>🤖 Análise JARVIS — Finanças</h3>
+      <p class="ms">Baseado nos seus dados financeiros</p>
+      <div style="font-size:13.5px;line-height:1.6;color:var(--txt-2);white-space:pre-wrap">${esc(r)}</div>
+      <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>`);
+  }catch(e){toast('Erro: '+e.message,'⚠️');}
+}
+
+/* =================================================================
+   PREDIÇÃO DE RESULTADOS
+   ================================================================= */
+function viewPredição(m){
+  const streak=streakCount();
+  const habPct=Math.round(S.habits.filter(h=>h.log[todayISO()]).length/Math.max(1,S.habits.length)*100);
+  const tasksLast7=()=>{let c=0;for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);
+    const k=d.toISOString().slice(0,10);c+=S.tasks.filter(t=>t.due===k&&t.done).length;}return c;}
+  const weekScore=Math.min(100,Math.round((streak/14*40)+(habPct*.3)+(tasksLast7()/14*30)));
+  const predDays=[30,90,180];
+  return `
+  <div class="section-head"><div><h2>Predição de Resultados</h2><p>Baseado no histórico local</p></div></div>
+  <div class="stat-row" style="grid-template-columns:repeat(3,1fr)">
+    ${predDays.map(d=>{
+      const proj=Math.min(100,Math.round(weekScore*(1+d/300)));
+      return statCard(d+' dias','~'+proj+'%','de consistência projetada',proj>70?'var(--green)':'var(--amber)','var(--accent)','rgba(109,94,252,.13)','<path d="M3 12l4-4 4 4 4-8 6 12"/>');
+    }).join('')}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:12px">Análise atual</b>
+    <p style="color:var(--txt-2);font-size:13.5px;line-height:1.6">
+      Streak: <b style="color:var(--accent-2)">${streak} dias</b> ·
+      Hábitos hoje: <b style="color:var(--green)">${habPct}%</b> ·
+      Score semanal: <b style="color:${weekScore>70?'var(--green)':'var(--amber)'}">${weekScore}/100</b>
+    </p>
+    <p style="color:var(--txt-3);font-size:13px;margin-top:12px;line-height:1.5">
+      ${weekScore>=70?'🔥 Excelente consistência! Mantenha o ritmo por mais 30 dias para hábitos automáticos.':
+        weekScore>=40?'📈 Progresso moderado. Foque em 1 hábito crítico por semana para acelerar.':
+        '⚡ Comece pequeno: 1 hábito, 1 tarefa por dia. Consistência supera intensidade.'}
+    </p>
+  </div>`;
+}
+
+/* Injeta predição como view */
+function viewPredView(m){m.innerHTML=viewPredição();}
+
+/* =================================================================
+   VIEWCONFIG — adiciona campo de API Key Abacus
+   ================================================================= */
+const _origViewConfig=viewConfig;
+function viewConfig(m){
+  _origViewConfig(m);
+  /* injeta card de IA após o card de sincronização */
+  const grid=m.querySelector('.grid');
+  if(!grid)return;
+  const keyCard=document.createElement('div');
+  keyCard.className='card';
+  keyCard.innerHTML=`
+    <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">🤖 JARVIS — Abacus AI</b>
+    <p style="color:var(--txt-2);font-size:13px;line-height:1.5;margin-bottom:12px">
+      Cole sua chave da Abacus AI para ativar JARVIS, dieta inteligente, shape e planejamento semanal.</p>
+    <div class="frow" style="margin-bottom:12px">
+      <label class="fl">API Key</label>
+      <input class="input" id="abacusKey" type="password" placeholder="sk-…" value="${esc(localStorage.getItem('vtz_abacus_key')||S.abacusKey||'')}">
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-primary" onclick="saveAbacusKey()">Salvar chave</button>
+      <button class="btn btn-ghost" onclick="testAbacusKey()">Testar</button>
+    </div>`;
+  grid.appendChild(keyCard);
+
+  /* injeta botão de análise financeira Jarvis na view financeiro */
+}
+function saveAbacusKey(){
+  const k=document.getElementById('abacusKey')?.value.trim();if(!k)return;
+  localStorage.setItem('vtz_abacus_key',k);
+  S.abacusKey=k;save();
+  toast('Chave Abacus salva!','🤖');
+}
+async function testAbacusKey(){
+  toast('Testando conexão…','⏳');
+  try{
+    await callAbacus([{role:'user',content:'Diga apenas: OK'}],10);
+    toast('Conexão OK! JARVIS ativo.','✅');
+  }catch(e){toast('Erro: '+e.message,'❌');}
+}
+
+/* =================================================================
+   BOTÃO DE ANÁLISE FINANCEIRA — injeta na view financeiro
+   ================================================================= */
+const _origViewFinance=viewFinance;
+function viewFinance(m){
+  _origViewFinance(m);
+  const head=m.querySelector('.section-head .grid, .section-head div:last-child');
+  const btn=document.createElement('button');
+  btn.className='btn btn-ghost';btn.textContent='🤖 Jarvis analisa';
+  btn.onclick=jarvisFinanceAnalysis;
+  const sh=m.querySelector('.section-head');
+  if(sh){const d=sh.querySelector('div:last-child');if(d)d.appendChild(btn);}
+}
+
+/* =================================================================
+   HIDRATAÇÃO — inicializar + quick button no dashboard
+   ================================================================= */
+reqNotifPerm();
+initHydration();
 
 /* daily streak rollover */
 if(S.lastActive!==todayISO()){S.lastActive=todayISO();save()}
