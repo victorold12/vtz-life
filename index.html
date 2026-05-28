@@ -1225,9 +1225,10 @@ function viewFinance(m){
   m.innerHTML=`
   <div class="section-head">
     <div><h2>Financeiro</h2><p>Controle de receitas, gastos e reserva</p></div>
-    <div style="display:flex;gap:9px">
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="openFin('in')">＋ Receita</button>
       <button class="btn btn-primary" onclick="openFin('out')">＋ Gasto</button>
+      <button class="btn btn-ghost" onclick="jarvisFinanceAnalysis()">🤖 Jarvis analisa</button>
     </div>
   </div>
   <div class="stat-row" style="grid-template-columns:repeat(3,1fr)">
@@ -1385,6 +1386,20 @@ function viewConfig(m){
           <label class="btn btn-ghost" style="cursor:pointer">⬆ Importar
             <input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
           <button class="btn btn-ghost" style="color:var(--red)" onclick="$('#resetBtn').click()">Limpar tudo</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">🤖 JARVIS — Abacus AI</b>
+        <p style="color:var(--txt-2);font-size:13px;line-height:1.5;margin-bottom:12px">
+          Cole sua chave da Abacus AI para ativar JARVIS, dieta inteligente, shape e planejamento semanal.</p>
+        <div class="frow" style="margin-bottom:12px">
+          <label class="fl">API Key</label>
+          <input class="input" id="abacusKey" type="password" placeholder="s2_…" value="${esc(localStorage.getItem('vtz_abacus_key')||S.abacusKey||'')}">
+        </div>
+        <div style="display:flex;gap:9px">
+          <button class="btn btn-primary" onclick="saveAbacusKey()">Salvar chave</button>
+          <button class="btn btn-ghost" onclick="testAbacusKey()">Testar conexão</button>
         </div>
       </div>
 
@@ -1669,8 +1684,18 @@ function speak(text){
   if(!window.speechSynthesis)return;
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
-  u.lang='pt-BR';u.rate=1.05;u.pitch=1;
-  window.speechSynthesis.speak(u);
+  u.lang='pt-BR';u.rate=0.92;u.pitch=1.05;u.volume=1;
+  const doSpeak=()=>{
+    const vs=window.speechSynthesis.getVoices();
+    const pt=vs.find(v=>v.lang==='pt-BR'&&v.localService)||
+              vs.find(v=>v.lang==='pt-BR')||
+              vs.find(v=>v.lang.startsWith('pt'));
+    if(pt)u.voice=pt;
+    window.speechSynthesis.speak(u);
+  };
+  const vs=window.speechSynthesis.getVoices();
+  if(vs.length)doSpeak();
+  else{window.speechSynthesis.onvoiceschanged=()=>{doSpeak();window.speechSynthesis.onvoiceschanged=null;};}
 }
 
 /* =================================================================
@@ -1995,33 +2020,6 @@ function viewPredição(m){
 /* Injeta predição como view */
 function viewPredView(m){m.innerHTML=viewPredição();}
 
-/* =================================================================
-   VIEWCONFIG — adiciona campo de API Key Abacus
-   ================================================================= */
-const _origViewConfig=viewConfig;
-function viewConfig(m){
-  _origViewConfig(m);
-  /* injeta card de IA após o card de sincronização */
-  const grid=m.querySelector('.grid');
-  if(!grid)return;
-  const keyCard=document.createElement('div');
-  keyCard.className='card';
-  keyCard.innerHTML=`
-    <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">🤖 JARVIS — Abacus AI</b>
-    <p style="color:var(--txt-2);font-size:13px;line-height:1.5;margin-bottom:12px">
-      Cole sua chave da Abacus AI para ativar JARVIS, dieta inteligente, shape e planejamento semanal.</p>
-    <div class="frow" style="margin-bottom:12px">
-      <label class="fl">API Key</label>
-      <input class="input" id="abacusKey" type="password" placeholder="sk-…" value="${esc(localStorage.getItem('vtz_abacus_key')||S.abacusKey||'')}">
-    </div>
-    <div style="display:flex;gap:9px">
-      <button class="btn btn-primary" onclick="saveAbacusKey()">Salvar chave</button>
-      <button class="btn btn-ghost" onclick="testAbacusKey()">Testar</button>
-    </div>`;
-  grid.appendChild(keyCard);
-
-  /* injeta botão de análise financeira Jarvis na view financeiro */
-}
 function saveAbacusKey(){
   const k=document.getElementById('abacusKey')?.value.trim();if(!k)return;
   localStorage.setItem('vtz_abacus_key',k);
@@ -2031,23 +2029,9 @@ function saveAbacusKey(){
 async function testAbacusKey(){
   toast('Testando conexão…','⏳');
   try{
-    await callAbacus([{role:'user',content:'Diga apenas: OK'}],10);
-    toast('Conexão OK! JARVIS ativo.','✅');
+    const r=await callAbacus([{role:'user',content:'Responda apenas: OK'}],20);
+    toast('Conexão OK! JARVIS ativo. Resp: '+r.slice(0,30),'✅');
   }catch(e){toast('Erro: '+e.message,'❌');}
-}
-
-/* =================================================================
-   BOTÃO DE ANÁLISE FINANCEIRA — injeta na view financeiro
-   ================================================================= */
-const _origViewFinance=viewFinance;
-function viewFinance(m){
-  _origViewFinance(m);
-  const head=m.querySelector('.section-head .grid, .section-head div:last-child');
-  const btn=document.createElement('button');
-  btn.className='btn btn-ghost';btn.textContent='🤖 Jarvis analisa';
-  btn.onclick=jarvisFinanceAnalysis;
-  const sh=m.querySelector('.section-head');
-  if(sh){const d=sh.querySelector('div:last-child');if(d)d.appendChild(btn);}
 }
 
 /* =================================================================
