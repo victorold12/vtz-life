@@ -346,10 +346,16 @@ body.light .sidebar{background:linear-gradient(180deg,#fff,#f4f5fa)}
   color:var(--txt-3);transition:.15s}
 .jarvis-hdr .jclose:hover{background:var(--line);color:var(--txt)}
 .jarvis-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;max-height:320px;min-height:80px}
-.jmsg{padding:9px 12px;border-radius:13px;font-size:13.5px;line-height:1.5;max-width:90%}
+.jmsg{padding:11px 14px;border-radius:14px;font-size:13.5px;line-height:1.6;max-width:94%}
 .jmsg.bot{background:var(--panel);border:1px solid var(--line);align-self:flex-start}
 .jmsg.usr{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;align-self:flex-end}
 .jmsg.loading{color:var(--txt-3);font-style:italic}
+.jmsg .jp{margin:0 0 8px}
+.jmsg .jp:last-child{margin-bottom:0}
+.jmsg .jh{font-family:var(--display);font-weight:700;font-size:14px;color:var(--txt);margin:10px 0 4px}
+.jmsg .jli{display:flex;gap:7px;margin:3px 0;align-items:flex-start}
+.jmsg .jli>span:first-child{color:var(--accent);font-weight:700;flex-shrink:0;margin-top:1px}
+.jmsg b{color:var(--txt);font-weight:700}
 .jarvis-inp{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
 .jarvis-inp input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:10px;
   padding:9px 12px;font-size:13.5px;transition:.15s}
@@ -1491,19 +1497,38 @@ async function getAbacusKey(){
   if(S.abacusKey){localStorage.setItem('vtz_abacus_key',S.abacusKey);return S.abacusKey;}
   return null;
 }
-async function callAbacus(msgs,maxTok=300){
+async function callAbacus(msgs,maxTok=300,sys=null){
   const key=await getAbacusKey();
   if(!key)throw new Error('Chave Abacus não configurada. Vá em Configurações → Abacus AI Key.');
+  const sysMsg=sys||'Responda sempre em português brasileiro. Seja objetivo e direto.';
   const r=await fetch('https://routellm.abacus.ai/v1/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
     body:JSON.stringify({model:'route-llm',messages:[
-      {role:'system',content:'Seja direto, use listas, sem introduções. Vá ao ponto. Responda sempre em português.'},
+      {role:'system',content:sysMsg},
       ...msgs],max_tokens:maxTok})
   });
   if(!r.ok)throw new Error('API error: '+r.status);
   const d=await r.json();
   return d.choices?.[0]?.message?.content||'(sem resposta)';
+}
+
+function mdToHtml(raw){
+  let s=raw
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // headers ## ou **Título** sozinhos na linha
+  s=s.replace(/^#{1,3}\s+(.+)$/gm,'<div class="jh">$1</div>');
+  s=s.replace(/^\*\*([^*\n]+)\*\*\s*$/gm,'<div class="jh">$1</div>');
+  // bold inline
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  // italic
+  s=s.replace(/\*([^*\n]+)\*/g,'<em>$1</em>');
+  // listas (*, -, •)
+  s=s.replace(/^[\*\-•]\s+(.+)$/gm,'<div class="jli"><span>•</span><span>$1</span></div>');
+  // parágrafos
+  s=s.replace(/\n{2,}/g,'</p><p class="jp">');
+  s=s.replace(/\n/g,'<br>');
+  return '<p class="jp">'+s+'</p>';
 }
 
 /* =================================================================
@@ -1523,12 +1548,16 @@ async function jarvisSend(){
   msgs.innerHTML+=`<div class="jmsg usr">${esc(q)}</div>`;
   const load=document.createElement('div');load.className='jmsg bot loading';load.textContent='Pensando…';
   msgs.appendChild(load);msgs.scrollTop=msgs.scrollHeight;
-  const ctx=`Dados resumidos do usuário: XP=${S.xp}, tarefas hoje=${S.tasks.filter(t=>t.due===todayISO()).length}, `+
-    `hábitos=${S.habits.length}, saldo=R$${(S.finance.filter(f=>f.type==='in').reduce((a,b)=>a+b.val,0)-S.finance.filter(f=>f.type==='out').reduce((a,b)=>a+b.val,0)).toFixed(0)}, `+
-    `fichas treino=${S.fichas.length}. Pergunta: ${q}`;
+  const saldo=(S.finance.filter(f=>f.type==='in').reduce((a,b)=>a+b.val,0)-S.finance.filter(f=>f.type==='out').reduce((a,b)=>a+b.val,0)).toFixed(0);
+  const ctx=`Contexto do usuário: XP=${S.xp}, tarefas hoje=${S.tasks.filter(t=>t.due===todayISO()).length}, `+
+    `hábitos=${S.habits.length}, saldo=R$${saldo}, fichas treino=${S.fichas.length}, streak=${streakCount()} dias.\n\nPergunta: ${q}`;
+  const jarvisSys='Você é JARVIS, assistente pessoal de Victor (17 anos, brasileiro, foco em musculação, produtividade e finanças). '+
+    'Responda SEMPRE em português brasileiro de forma natural e direta. '+
+    'Formate assim: use **negrito** apenas para termos-chave, liste itens com "• item" (um por linha), separe seções com um título em **negrito** sozinho na linha. '+
+    'Seja objetivo — sem introduções genéricas do tipo "claro, posso ajudar". Vá direto ao ponto. Máximo 4 parágrafos.';
   try{
-    const r=await callAbacus([{role:'user',content:ctx}],300);
-    load.className='jmsg bot';load.textContent=r;
+    const r=await callAbacus([{role:'user',content:ctx}],320,jarvisSys);
+    load.className='jmsg bot';load.innerHTML=mdToHtml(r);
     jarvisSaveMemory(q,r);
   }catch(e){load.className='jmsg bot';load.textContent='⚠️ '+e.message;}
   msgs.scrollTop=msgs.scrollHeight;
