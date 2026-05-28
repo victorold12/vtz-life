@@ -1551,10 +1551,13 @@ async function jarvisSend(){
   const saldo=(S.finance.filter(f=>f.type==='in').reduce((a,b)=>a+b.val,0)-S.finance.filter(f=>f.type==='out').reduce((a,b)=>a+b.val,0)).toFixed(0);
   const ctx=`Contexto do usuário: XP=${S.xp}, tarefas hoje=${S.tasks.filter(t=>t.due===todayISO()).length}, `+
     `hábitos=${S.habits.length}, saldo=R$${saldo}, fichas treino=${S.fichas.length}, streak=${streakCount()} dias.\n\nPergunta: ${q}`;
-  const jarvisSys='Você é JARVIS, assistente pessoal de Victor (17 anos, brasileiro, foco em musculação, produtividade e finanças). '+
-    'Responda SEMPRE em português brasileiro de forma natural e direta. '+
-    'Formate assim: use **negrito** apenas para termos-chave, liste itens com "• item" (um por linha), separe seções com um título em **negrito** sozinho na linha. '+
-    'Seja objetivo — sem introduções genéricas do tipo "claro, posso ajudar". Vá direto ao ponto. Máximo 4 parágrafos.';
+  const jarvisSys=
+    'Você é JARVIS — assistente pessoal de elite de Victor Hugo (17 anos, brasileiro). '+
+    'Perfil: musculação progressiva (foco em hipertrofia), alta performance escolar, controle financeiro inteligente e desenvolvimento pessoal baseado em disciplina e fé. '+
+    'Você combina o raciocínio de um coach de alta performance, nutricionista esportivo, consultor financeiro e mentor pessoal experiente. '+
+    'SEMPRE em português brasileiro natural. Seja preciso, direto e acionável — como um especialista falando com um atleta sério. '+
+    'Formate: **negrito** para conceitos-chave, "• item" para listas de ações, **Título** sozinho na linha para seções distintas. '+
+    'NUNCA use introduções como "Claro!", "Ótima pergunta!", "Posso ajudar!". Vá direto ao conteúdo com autoridade e objetividade. Máx 5 parágrafos curtos.';
   try{
     const r=await callAbacus([{role:'user',content:ctx}],320,jarvisSys);
     load.className='jmsg bot';load.innerHTML=mdToHtml(r);
@@ -1776,10 +1779,15 @@ async function shapeAnalyze(e){
     canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
     const b64=canvas.toDataURL('image/jpeg',.7).split(',')[1];
     try{
+      const shapeSys=
+        'Você é um avaliador físico especialista em composição corporal e estética esportiva, com 15 anos de experiência em hipertrofia para jovens atletas. '+
+        'Analise imagens com critério técnico rigoroso: proporções musculares, desenvolvimento por grupos, simetria bilateral, definição e espessura muscular visível. '+
+        'Seja honesto e direto — elogios vazios não ajudam um atleta a melhorar. Identifique pontos fortes reais e deficiências prioritárias. '+
+        'Retorne SOMENTE JSON válido, sem texto antes ou depois.';
       const r=await callAbacus([{role:'user',content:[
-        {type:'text',text:'Analise esta foto de corpo/físico. Retorne JSON com: score(0-10), label(ex:"bom progresso"), zones=[{ic,n,v,c}] (3 zonas: ombro/peito, abdome, pernas, usando emojis e cores CSS), advice(string curta de feedback direto). Seja direto e honesto.'},
+        {type:'text',text:'Analise esta foto de físico/corpo. Retorne JSON: {score(0-10 baseado em desenvolvimento muscular e proporção real), label(classificação técnica ex: "em desenvolvimento", "boa base", "atlético"), zones:[{ic(emoji),n(nome da zona muscular),v(avaliação curta e honesta),c(cor CSS: var(--green) se bom, var(--amber) se médio, var(--red) se fraco)}] com exatamente 3 zonas (superior/core/inferior), advice(2 frases técnicas: 1 ponto forte real + 1 prioridade de treino imediata)}. JSON puro.'},
         {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64}}
-      ]}],400);
+      ]}],400,shapeSys);
       let parsed;
       try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}
       catch{parsed={score:5,label:'análise concluída',zones:[{ic:'💪',n:'Superioir',v:'ok',c:'var(--amber)'},{ic:'🔥',n:'Core',v:'em progresso',c:'var(--amber)'},{ic:'🦵',n:'Inferior',v:'ok',c:'var(--green)'}],advice:r.slice(0,200)}}
@@ -1834,8 +1842,13 @@ async function gerarDieta(){
   const btn=document.querySelector('#main .btn-primary');
   if(btn){btn.textContent='⏳ Gerando…';btn.disabled=true;}
   try{
-    const txt=await callAbacus([{role:'user',content:`Crie um plano alimentar completo para hoje usando apenas estes ingredientes: ${ingr}.
-Retorne JSON: {refeicoes:[{nome,itens,kcal}],dica}. Use 4-5 refeições. Foco em ganho muscular para jovem de 17 anos treinando musculação.`}],500);
+    const dietaSys=
+      'Você é um nutricionista esportivo especializado em hipertrofia para jovens atletas (17 anos, musculação intensa, ~70kg). '+
+      'Objetivos: maximizar síntese proteica, otimizar timing nutricional em relação ao treino (geralmente 18h), criar balanço energético levemente positivo para ganho de massa magra. '+
+      'Metas nutricionais: proteína 1,8–2,2g/kg (126–154g/dia), carboidratos como combustível principal (pré e pós-treino prioritários), gorduras saudáveis essenciais. '+
+      'Monte refeições práticas com os ingredientes disponíveis, com nomes e horários estratégicos. '+
+      'Retorne SOMENTE JSON válido, sem texto extra antes ou depois.';
+    const txt=await callAbacus([{role:'user',content:`Ingredientes disponíveis: ${ingr}.\nCrie plano alimentar estratégico para hoje com 4-5 refeições. JSON: {refeicoes:[{nome(com horário sugerido ex: "Café da manhã – 7h"),itens(lista detalhada com porções estimadas),kcal(estimativa numérica)}],dica(insight nutricional técnico e prático, 1-2 frases)}. JSON puro.`}],520,dietaSys);
     let parsed;
     try{parsed=JSON.parse(txt.match(/\{[\s\S]*\}/)?.[0]||txt)}
     catch{parsed={raw:txt,dica:'Plano gerado com sucesso.'}}
@@ -1978,9 +1991,13 @@ async function generateWeeklyPlan(){
   const habits=S.habits.map(h=>h.name).join(', ');
   const xp=S.xp;
   try{
-    const r=await callAbacus([{role:'user',content:`Crie um planejamento semanal para Victor (17 anos, musculação, escola).
-Tarefas recentes: ${tasks}. Hábitos: ${habits}. XP: ${xp}.
-Retorne lista de prioridades por dia (seg-dom), com 3 focos por dia. Seja conciso.`}],600);
+    const weeklySys=
+      'Você é um coach de alta performance especializado em jovens atletas-estudantes de elite. '+
+      'Metodologia: blocos de deep work (90min máx), periodização de esforço cognitivo e físico, recuperação planejada como parte do plano — não como fraqueza. '+
+      'Princípios: consistência > intensidade, progressão gradual, integração fé + disciplina + performance. '+
+      'Monte um plano realista e desafiador ao mesmo tempo. Cada dia tem exatamente 3 prioridades absolutas — não mais, não menos. '+
+      'Formate em markdown: **Segunda-feira** seguido de bullets "• [prioridade] — [justificativa em 1 linha]". Seja preciso e motivador.';
+    const r=await callAbacus([{role:'user',content:`Dados de Victor: tarefas recentes = ${tasks}. Hábitos ativos = ${habits}. XP acumulado = ${xp}.\nCrie planejamento semanal de segunda a domingo com 3 prioridades absolutas por dia, horários sugeridos e 1 frase de intenção para a semana. Markdown limpo.`}],620,weeklySys);
     const cacheKey='vtz_weekly_'+getMonday();
     const data={text:r,date:new Date().toLocaleDateString('pt-BR'),week:getMonday()};
     localStorage.setItem(cacheKey,JSON.stringify(data));
@@ -2003,12 +2020,18 @@ async function jarvisFinanceAnalysis(){
   const byCat={};S.finance.filter(f=>f.type==='out').forEach(f=>byCat[f.cat]=(byCat[f.cat]||0)+f.val);
   const catStr=Object.entries(byCat).map(([c,v])=>`${c}:R$${v.toFixed(0)}`).join(', ');
   toast('Analisando finanças…','🤖');
+  const finSys=
+    'Você é um consultor financeiro especializado em educação financeira para jovens (17 anos, primeiro emprego/jovem aprendiz). '+
+    'Framework de análise: saúde financeira atual (taxa de poupança, equilíbrio receita/gasto), eficiência de alocação por categoria, potencial de construção patrimonial no longo prazo. '+
+    'Seja técnico mas acessível. Use percentuais e valores concretos quando relevante. '+
+    'Estruture SEMPRE em 3 blocos com esses títulos exatos em negrito: **✅ Pontos fortes**, **⚠️ O que otimizar**, **🎯 Ação desta semana**. '+
+    'Sem introduções. Máx 6 bullets no total. Seja direto como um CFO falando com seu assistente.';
   try{
-    const r=await callAbacus([{role:'user',content:`Analise as finanças: receitas=R$${inc.toFixed(0)}, gastos=R$${out.toFixed(0)}, categorias: ${catStr}.
-Dê feedback direto em 3 pontos: o que está bom, o que cortar, e uma ação imediata de economia.`}],200);
+    const taxaPoup=inc>0?((inc-out)/inc*100).toFixed(0):0;
+    const r=await callAbacus([{role:'user',content:`Dados financeiros: receitas=R$${inc.toFixed(0)}, gastos=R$${out.toFixed(0)}, saldo=R$${(inc-out).toFixed(0)}, taxa de poupança=${taxaPoup}%, gastos por categoria: ${catStr}. Orçamento mensal definido: R$${S.budget}.\nAnalise e estruture nos 3 blocos solicitados.`}],280,finSys);
     modal(`<h3>🤖 Análise JARVIS — Finanças</h3>
-      <p class="ms">Baseado nos seus dados financeiros</p>
-      <div style="font-size:13.5px;line-height:1.6;color:var(--txt-2);white-space:pre-wrap">${esc(r)}</div>
+      <p class="ms">Baseado nos seus dados • ${new Date().toLocaleDateString('pt-BR')}</p>
+      <div style="font-size:13.5px;line-height:1.7;color:var(--txt-2)">${mdToHtml(r)}</div>
       <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>`);
   }catch(e){toast('Erro: '+e.message,'⚠️');}
 }
