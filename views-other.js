@@ -158,8 +158,39 @@ function pomoSetRest(v){if(!pomoState.running&&v>0){pomoState.rest=v;render()}}
 
 /* ── TTS ── */
 function getVoicePrefs(){return{voice:localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female',rate:parseFloat(localStorage.getItem('vtz_rv_rate')||'0.9'),pitch:parseFloat(localStorage.getItem('vtz_rv_pitch')||'1')}}
-function speak(text){const p=getVoicePrefs();if(window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onerror:()=>speakFallback(text,p)});return}catch(e){}}speakFallback(text,p)}
-function speakFallback(text,p){if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.volume=1;const doSpeak=()=>{const vs=window.speechSynthesis.getVoices();const pt=vs.find(v=>v.lang==='pt-BR'&&v.localService)||vs.find(v=>v.lang==='pt-BR')||vs.find(v=>v.lang.startsWith('pt'));if(pt)u.voice=pt;window.speechSynthesis.speak(u)};const vs=window.speechSynthesis.getVoices();if(vs.length)doSpeak();else{window.speechSynthesis.onvoiceschanged=()=>{doSpeak();window.speechSynthesis.onvoiceschanged=null}}}
+function speak(text){
+  if(!text)return;
+  text=String(text).trim();if(!text)return;
+  const p=getVoicePrefs();
+  if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
+    try{
+      responsiveVoice.cancel();
+      responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
+        onerror:()=>speakFallback(text,p)});
+      return;
+    }catch(e){}
+  }
+  speakFallback(text,p);
+}
+function speakFallback(text,p){
+  if(!window.speechSynthesis)return;
+  try{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='pt-BR';u.rate=p?.rate||0.9;u.pitch=p?.pitch||1;u.volume=1;
+    const doSpeak=()=>{
+      try{
+        const vs=window.speechSynthesis.getVoices();
+        const pt=vs.find(v=>v.lang==='pt-BR'&&v.localService)||vs.find(v=>v.lang==='pt-BR')||vs.find(v=>v.lang.startsWith('pt'));
+        if(pt)u.voice=pt;
+        window.speechSynthesis.speak(u);
+      }catch(e){}
+    };
+    const vs=window.speechSynthesis.getVoices();
+    if(vs.length)doSpeak();
+    else{window.speechSynthesis.onvoiceschanged=()=>{doSpeak();window.speechSynthesis.onvoiceschanged=null};}
+  }catch(e){}
+}
 
 /* ── DIETA ── */
 function viewDieta(m){
@@ -191,7 +222,7 @@ async function gerarDieta(){
     const txt=await callAbacus([{role:'user',content:`Ingredientes: ${ingr}.\nCrie plano alimentar para hoje com 4-5 refeições. JSON: {refeicoes:[{nome(com horário),itens(lista com porções),kcal}],dica(insight nutricional)}. JSON puro.`}],520,dietaSys);
     let parsed;try{parsed=JSON.parse(txt.match(/\{[\s\S]*\}/)?.[0]||txt)}catch{parsed={raw:txt,dica:'Plano gerado.'}}
     localStorage.setItem('vtz_dieta_'+todayISO(),JSON.stringify(parsed));
-    toast('Plano alimentar gerado!','🥗');addXp(10);render();
+    toast('Plano alimentar gerado!','🥗');addXp(10);go('dieta');
   }catch(e){toast('Erro: '+e.message,'⚠️');if(btn){btn.textContent='🧠 Gerar plano do dia';btn.disabled=false}}
 }
 
