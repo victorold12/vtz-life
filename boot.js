@@ -182,6 +182,11 @@ function reqNotifPerm(){
 }
 
 /* ── GLOBAL EVENT LISTENERS ── */
+/* Navegação sidebar + mobile */
+document.querySelectorAll('.nav-item,.mnav-item').forEach(b=>{
+  b.addEventListener('click',()=>{if(b.dataset.view)go(b.dataset.view)});
+});
+
 $('#themeBtn').addEventListener('click',()=>{S.theme=S.theme==='light'?'dark':'light';save();applyTheme();if(currentView==='config')render();toast('Tema: '+(S.theme==='light'?'claro':'escuro'),'🎨')});
 $('#resetBtn').addEventListener('click',()=>{modal(`<h3>Limpar todos os dados?</h3><p class="ms">Apaga tarefas, finanças, treinos e eventos. Não pode ser desfeito.</p><div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" style="background:var(--red);box-shadow:none" onclick="doReset()">Sim, limpar</button></div>`)});
 function doReset(){localStorage.removeItem(KEY);S=seed();save();closeModal();go('dashboard');toast('Dados reiniciados','♻️')}
