@@ -56,15 +56,16 @@ function viewConfig(m){
         <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveGeminiKey()">Salvar</button><button class="btn btn-ghost" onclick="testGeminiKey()">Testar</button></div>
       </div>
       <div class="card">
-        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">🎙 Voz do JARVIS</b>
-        <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">Amazon Polly Neural via StreamElements — gratuito, sem key, qualidade humanizada.</p>
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">🎙 Voz do JARVIS</b>
         <div class="frow" style="margin-bottom:12px"><label class="fl">Voz</label>
-          <select class="input" id="seVoice">
-            ${[['Vitoria','🇧🇷 Vitoria (feminina)'],['Ricardo','🇧🇷 Ricardo (masculino)'],['Camila','🇧🇷 Camila (feminina neural)'],['Thiago','🇧🇷 Thiago (masculino neural)']].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_se_voice')||'Vitoria')===v?'selected':''}>${l}</option>`).join('')}
+          <select class="input" id="rvVoice" onchange="previewVoice()">
+            ${[['Brazilian Portuguese Female','🇧🇷 Feminina (padrão)'],['Brazilian Portuguese Male','🇧🇷 Masculina'],['Portuguese Female','🇵🇹 Feminina (Portugal)'],['Google português do Brasil','Google pt-BR']].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female')===v?'selected':''}>${l}</option>`).join('')}
           </select></div>
         <div class="frow" style="margin-bottom:12px"><label class="fl">Velocidade — <b id="rateVal">${localStorage.getItem('vtz_rv_rate')||'0.9'}</b>×</label>
           <input type="range" id="rvRate" min="0.5" max="1.5" step="0.05" value="${localStorage.getItem('vtz_rv_rate')||'0.9'}" oninput="document.getElementById('rateVal').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:6px"></div>
-        <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveVoicePrefs()">Salvar</button><button class="btn btn-ghost" onclick="previewVoice()">▶ Testar agora</button></div>
+        <div class="frow" style="margin-bottom:12px"><label class="fl">Tom (pitch) — <b id="pitchVal">${localStorage.getItem('vtz_rv_pitch')||'1.0'}</b></label>
+          <input type="range" id="rvPitch" min="0.5" max="1.5" step="0.05" value="${localStorage.getItem('vtz_rv_pitch')||'1.0'}" oninput="document.getElementById('pitchVal').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:6px"></div>
+        <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveVoicePrefs()">Salvar voz</button><button class="btn btn-ghost" onclick="previewVoice()">▶ Testar agora</button></div>
       </div>
       <div class="card">
         <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">Dados</b>
@@ -89,18 +90,20 @@ async function testGroqKey(){toast('Testando…','⏳');try{const r=await callGr
 function saveGeminiKey(){const k=document.getElementById('geminiKey')?.value.trim();if(!k)return;localStorage.setItem('vtz_gemini_key',k);toast('Chave Gemini salva!','👁')}
 async function testGeminiKey(){toast('Testando…','⏳');try{const r=await callGemini('Responda apenas: OK',20);toast('Gemini OK: '+r.slice(0,20),'✅')}catch(e){toast('Erro: '+e.message,'❌')}}
 function saveVoicePrefs(){
+  const v=document.getElementById('rvVoice')?.value;
   const r=document.getElementById('rvRate')?.value;
   const pi=document.getElementById('rvPitch')?.value;
-  const sv=document.getElementById('seVoice')?.value;
+  if(v)localStorage.setItem('vtz_rv_voice',v);
   if(r)localStorage.setItem('vtz_rv_rate',r);
   if(pi)localStorage.setItem('vtz_rv_pitch',pi);
-  if(sv)localStorage.setItem('vtz_se_voice',sv);
   toast('Preferências de voz salvas','🎙');
 }
 function previewVoice(){
-  const sv=document.getElementById('seVoice')?.value;
-  if(sv)localStorage.setItem('vtz_se_voice',sv);
-  speak('Olá Victor. JARVIS ativo e pronto para te ajudar.');
+  const v=document.getElementById('rvVoice')?.value||getVoicePrefs().voice;
+  const r=parseFloat(document.getElementById('rvRate')?.value||getVoicePrefs().rate);
+  const pi=parseFloat(document.getElementById('rvPitch')?.value||getVoicePrefs().pitch);
+  if(window.responsiveVoice){responsiveVoice.cancel();responsiveVoice.speak('Olá Victor. JARVIS ativo e pronto para te ajudar.',v,{rate:r,pitch:pi,volume:1});}
+  else speak('Olá Victor. JARVIS ativo e pronto para te ajudar.');
 }
 
 /* ── MISSÕES ── */
@@ -185,22 +188,22 @@ function pomoSetRest(v){if(!pomoState.running&&v>0){pomoState.rest=v;render()}}
 
 /* ── TTS ── */
 function getVoicePrefs(){return{
+  voice:localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female',
   rate:parseFloat(localStorage.getItem('vtz_rv_rate')||'0.9'),
   pitch:parseFloat(localStorage.getItem('vtz_rv_pitch')||'1'),
-  seVoice:localStorage.getItem('vtz_se_voice')||'Vitoria',
 }}
-let _currentAudio=null;
 function speak(text){
   if(!text)return;
-  text=String(text).trim();if(!text)return;
   const p=getVoicePrefs();
-  if(_currentAudio){_currentAudio.pause();_currentAudio=null;}
-  const url=`https://api.streamelements.com/kappa/v2/speech?voice=${p.seVoice}&text=${encodeURIComponent(text.slice(0,500))}`;
-  const audio=new Audio(url);
-  audio.playbackRate=p.rate;
-  _currentAudio=audio;
-  audio.onerror=()=>{_currentAudio=null;speakBrowserFallback(text,p);};
-  audio.play().catch(()=>{_currentAudio=null;speakBrowserFallback(text,p);});
+  if(window.responsiveVoice){
+    try{
+      responsiveVoice.cancel();
+      responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
+        onend:null,onerror:()=>speakBrowserFallback(text,p)});
+      return;
+    }catch(e){}
+  }
+  speakBrowserFallback(text,p);
 }
 function speakBrowserFallback(text,p){
   if(!window.speechSynthesis)return;
