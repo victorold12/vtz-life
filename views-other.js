@@ -38,18 +38,35 @@ function viewConfig(m){
         ${SYNC.user?`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-2);border-radius:var(--r-sm);margin-bottom:12px"><div style="width:38px;height:38px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-weight:700">${(SYNC.user.displayName||'?')[0]}</div><div style="flex:1"><div style="font-weight:600">${SYNC.user.displayName||'Usuário'}</div><div style="color:var(--txt-3);font-size:12px">${SYNC.user.email||''}</div></div><button class="btn btn-ghost" onclick="logoutGoogle()">Sair</button></div><p style="color:var(--green);font-size:13px">✅ Dados sincronizados em tempo real.</p>`:`<p style="color:var(--txt-2);font-size:13px;line-height:1.5;margin-bottom:14px">Faça login com Google para sincronizar entre todos os seus dispositivos automaticamente.</p><button class="btn btn-primary" style="width:100%;justify-content:center" onclick="loginGoogle()">Entrar com Google</button>`}
       </div>
       <div class="card">
-        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">🤖 JARVIS — Abacus AI</b>
-        <p style="color:var(--txt-2);font-size:13px;line-height:1.5;margin-bottom:12px">Cole sua chave da Abacus AI para ativar JARVIS, dieta, shape e planejamento semanal.</p>
-        <div class="frow" style="margin-bottom:12px"><label class="fl">API Key</label><input class="input" id="abacusKey" type="password" placeholder="s2_…" value="${esc(localStorage.getItem('vtz_abacus_key')||S.abacusKey||'')}"></div>
-        <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveAbacusKey()">Salvar chave</button><button class="btn btn-ghost" onclick="testAbacusKey()">Testar conexão</button></div>
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">🤖 JARVIS — Abacus AI</b>
+        <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">Usado no JARVIS, análise de e-books e biblioteca.</p>
+        <div class="frow" style="margin-bottom:10px"><label class="fl">API Key</label><input class="input" id="abacusKey" type="password" placeholder="s2_…" value="${esc(localStorage.getItem('vtz_abacus_key')||S.abacusKey||'')}"></div>
+        <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveAbacusKey()">Salvar</button><button class="btn btn-ghost" onclick="testAbacusKey()">Testar</button></div>
       </div>
       <div class="card">
-        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">🎙 Voz do JARVIS</b>
-        <div class="frow" style="margin-bottom:12px"><label class="fl">Voz</label>
-          <select class="input" id="rvVoice" onchange="previewVoice()">
-            ${[['Brazilian Portuguese Female','🇧🇷 Feminina (padrão)'],['Brazilian Portuguese Male','🇧🇷 Masculina'],['Portuguese Female','🇵🇹 Feminina (Portugal)'],['Google português do Brasil','Google pt-BR']].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female')===v?'selected':''}>${l}</option>`).join('')}
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">⚡ Groq AI</b>
+        <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">Usado em: Dieta, Coach de treino, Análise financeira. Grátis em <a href="https://console.groq.com" target="_blank" style="color:var(--accent-2)">console.groq.com</a></p>
+        <div class="frow" style="margin-bottom:10px"><label class="fl">API Key</label><input class="input" id="groqKey" type="password" placeholder="gsk_…" value="${esc(localStorage.getItem('vtz_groq_key')||'')}"></div>
+        <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveGroqKey()">Salvar</button><button class="btn btn-ghost" onclick="testGroqKey()">Testar</button></div>
+      </div>
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">👁 Google Gemini</b>
+        <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">Usado em: Shape (foto), Análise de prato. Grátis em <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent-2)">aistudio.google.com</a></p>
+        <div class="frow" style="margin-bottom:10px"><label class="fl">API Key</label><input class="input" id="geminiKey" type="password" placeholder="AIza…" value="${esc(localStorage.getItem('vtz_gemini_key')||'')}"></div>
+        <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveGeminiKey()">Salvar</button><button class="btn btn-ghost" onclick="testGeminiKey()">Testar</button></div>
+      </div>
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">🎙 Voz — Azure TTS</b>
+        <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">500k chars/mês grátis. Crie em <a href="https://portal.azure.com" target="_blank" style="color:var(--accent-2)">portal.azure.com</a> → Speech Service. Sem key = usa voz do browser.</p>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div><label class="fl">API Key</label><input class="input" id="azureTtsKey" type="password" placeholder="sua-key-azure" value="${esc(localStorage.getItem('vtz_azure_tts_key')||'')}"></div>
+          <div><label class="fl">Região</label><input class="input" id="azureRegion" placeholder="eastus" value="${esc(localStorage.getItem('vtz_azure_tts_region')||'eastus')}"></div>
+        </div>
+        <div class="frow" style="margin-bottom:10px"><label class="fl">Voz</label>
+          <select class="input" id="azureVoice">
+            ${[['pt-BR-FranciscaNeural','🇧🇷 Francisca (feminina) — padrão'],['pt-BR-AntonioNeural','🇧🇷 Antonio (masculino)'],['pt-BR-BrendaNeural','🇧🇷 Brenda (feminina)'],['pt-BR-DonatoNeural','🇧🇷 Donato (masculino)'],['pt-BR-GiovannaNeural','🇧🇷 Giovanna (feminina)'],['pt-BR-HumbertoNeural','🇧🇷 Humberto (masculino)'],['pt-BR-LeticiaNeural','🇧🇷 Leticia (feminina)'],['pt-BR-ThalitaNeural','🇧🇷 Thalita (feminina)']].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_azure_voice')||'pt-BR-FranciscaNeural')===v?'selected':''}>${l}</option>`).join('')}
           </select></div>
-        <div class="frow" style="margin-bottom:12px"><label class="fl">Velocidade — <b id="rateVal">${localStorage.getItem('vtz_rv_rate')||'0.9'}</b>×</label>
+        <div class="frow" style="margin-bottom:10px"><label class="fl">Velocidade — <b id="rateVal">${localStorage.getItem('vtz_rv_rate')||'0.9'}</b>×</label>
           <input type="range" id="rvRate" min="0.5" max="1.5" step="0.05" value="${localStorage.getItem('vtz_rv_rate')||'0.9'}" oninput="document.getElementById('rateVal').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:6px"></div>
         <div class="frow" style="margin-bottom:12px"><label class="fl">Tom (pitch) — <b id="pitchVal">${localStorage.getItem('vtz_rv_pitch')||'1.0'}</b></label>
           <input type="range" id="rvPitch" min="0.5" max="1.5" step="0.05" value="${localStorage.getItem('vtz_rv_pitch')||'1.0'}" oninput="document.getElementById('pitchVal').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:6px"></div>
@@ -72,8 +89,23 @@ function saveConfig(){S.profile.name=$('#cName').value.trim()||'Você';S.profile
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='vtz-backup-'+todayISO()+'.json';a.click();toast('Backup exportado','⬇️')}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);if(!S.profile)S.profile=seed().profile;save();applyTheme();go('dashboard');toast('Backup importado','⬆️')}catch(err){toast('Arquivo inválido','⚠️')}};r.readAsText(f)}
 function saveAbacusKey(){const k=document.getElementById('abacusKey')?.value.trim();if(!k)return;localStorage.setItem('vtz_abacus_key',k);S.abacusKey=k;save();toast('Chave Abacus salva!','🤖')}
-async function testAbacusKey(){toast('Testando conexão…','⏳');try{const r=await callAbacus([{role:'user',content:'Responda apenas: OK'}],20);toast('Conexão OK! Resp: '+r.slice(0,30),'✅')}catch(e){toast('Erro: '+e.message,'❌')}}
-function saveVoicePrefs(){const v=document.getElementById('rvVoice')?.value,r=document.getElementById('rvRate')?.value,pi=document.getElementById('rvPitch')?.value;if(v)localStorage.setItem('vtz_rv_voice',v);if(r)localStorage.setItem('vtz_rv_rate',r);if(pi)localStorage.setItem('vtz_rv_pitch',pi);toast('Preferências de voz salvas','🎙')}
+async function testAbacusKey(){toast('Testando…','⏳');try{const r=await callAbacus([{role:'user',content:'Responda apenas: OK'}],20);toast('Abacus OK: '+r.slice(0,20),'✅')}catch(e){toast('Erro: '+e.message,'❌')}}
+function saveGroqKey(){const k=document.getElementById('groqKey')?.value.trim();if(!k)return;localStorage.setItem('vtz_groq_key',k);toast('Chave Groq salva!','⚡')}
+async function testGroqKey(){toast('Testando…','⏳');try{const r=await callGroq([{role:'user',content:'Responda apenas: OK'}],20);toast('Groq OK: '+r.slice(0,20),'✅')}catch(e){toast('Erro: '+e.message,'❌')}}
+function saveGeminiKey(){const k=document.getElementById('geminiKey')?.value.trim();if(!k)return;localStorage.setItem('vtz_gemini_key',k);toast('Chave Gemini salva!','👁')}
+async function testGeminiKey(){toast('Testando…','⏳');try{const r=await callGemini('Responda apenas: OK',20);toast('Gemini OK: '+r.slice(0,20),'✅')}catch(e){toast('Erro: '+e.message,'❌')}}
+function saveVoicePrefs(){
+  const r=document.getElementById('rvRate')?.value,pi=document.getElementById('rvPitch')?.value;
+  const azKey=document.getElementById('azureTtsKey')?.value.trim();
+  const azReg=document.getElementById('azureRegion')?.value.trim();
+  const azVoice=document.getElementById('azureVoice')?.value;
+  if(r)localStorage.setItem('vtz_rv_rate',r);
+  if(pi)localStorage.setItem('vtz_rv_pitch',pi);
+  if(azKey!==undefined)localStorage.setItem('vtz_azure_tts_key',azKey);
+  if(azReg)localStorage.setItem('vtz_azure_tts_region',azReg);
+  if(azVoice)localStorage.setItem('vtz_azure_voice',azVoice);
+  toast('Configurações de voz salvas','🎙');
+}
 function previewVoice(){const v=document.getElementById('rvVoice')?.value||getVoicePrefs().voice;const r=parseFloat(document.getElementById('rvRate')?.value||getVoicePrefs().rate);const pi=parseFloat(document.getElementById('rvPitch')?.value||getVoicePrefs().pitch);if(window.responsiveVoice){responsiveVoice.cancel();responsiveVoice.speak('Olá Victor. JARVIS ativo e pronto para te ajudar.',v,{rate:r,pitch:pi,volume:1})}else{speak('Olá Victor. JARVIS ativo.')}}
 
 /* ── MISSÕES ── */
@@ -157,40 +189,58 @@ function pomoSetWork(v){if(!pomoState.running&&v>0){pomoState.work=v;pomoState.s
 function pomoSetRest(v){if(!pomoState.running&&v>0){pomoState.rest=v;render()}}
 
 /* ── TTS ── */
-function getVoicePrefs(){return{voice:localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female',rate:parseFloat(localStorage.getItem('vtz_rv_rate')||'0.9'),pitch:parseFloat(localStorage.getItem('vtz_rv_pitch')||'1')}}
+function getVoicePrefs(){return{
+  voice:localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female',
+  rate:parseFloat(localStorage.getItem('vtz_rv_rate')||'0.9'),
+  pitch:parseFloat(localStorage.getItem('vtz_rv_pitch')||'1'),
+  azureKey:localStorage.getItem('vtz_azure_tts_key')||'',
+  azureRegion:localStorage.getItem('vtz_azure_tts_region')||'eastus',
+  azureVoice:localStorage.getItem('vtz_azure_voice')||'pt-BR-FranciscaNeural',
+}}
+async function speakAzure(text,p){
+  if(!p.azureKey)return false;
+  const rate=Math.round((p.rate-1)*100);
+  const pitch=Math.round((p.pitch-1)*50);
+  const escaped=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  const ssml=`<speak version='1.0' xml:lang='pt-BR'><voice name='${p.azureVoice}'><prosody rate='${rate>=0?'+':''}${rate}%' pitch='${pitch>=0?'+':''}${pitch}%'>${escaped}</prosody></voice></speak>`;
+  try{
+    const r=await fetch(`https://${p.azureRegion}.tts.speech.microsoft.com/cognitiveservices/v1`,{
+      method:'POST',
+      headers:{'Ocp-Apim-Subscription-Key':p.azureKey,'Content-Type':'application/ssml+xml','X-Microsoft-OutputFormat':'audio-24khz-48kbitrate-mono-mp3'},
+      body:ssml});
+    if(!r.ok)return false;
+    const blob=await r.blob();
+    const audio=new Audio(URL.createObjectURL(blob));
+    audio.play();
+    return true;
+  }catch(e){return false;}
+}
 function speak(text){
   if(!text)return;
   text=String(text).trim();if(!text)return;
   const p=getVoicePrefs();
-  if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
-    try{
-      responsiveVoice.cancel();
-      responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,
-        onerror:()=>speakFallback(text,p)});
-      return;
-    }catch(e){}
+  if(p.azureKey){
+    speakAzure(text,p).then(ok=>{if(!ok)speakBrowserFallback(text,p)}).catch(()=>speakBrowserFallback(text,p));
+    return;
   }
-  speakFallback(text,p);
+  if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
+    try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onerror:()=>speakBrowserFallback(text,p)});return;}
+    catch(e){}
+  }
+  speakBrowserFallback(text,p);
 }
-function speakFallback(text,p){
+function speakBrowserFallback(text,p){
   if(!window.speechSynthesis)return;
   try{
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     u.lang='pt-BR';u.rate=p?.rate||0.9;u.pitch=p?.pitch||1;u.volume=1;
-    const doSpeak=()=>{
-      try{
-        const vs=window.speechSynthesis.getVoices();
-        const pt=vs.find(v=>v.lang==='pt-BR'&&v.localService)||vs.find(v=>v.lang==='pt-BR')||vs.find(v=>v.lang.startsWith('pt'));
-        if(pt)u.voice=pt;
-        window.speechSynthesis.speak(u);
-      }catch(e){}
-    };
+    const doSpeak=()=>{try{const vs=window.speechSynthesis.getVoices();const pt=vs.find(v=>v.lang==='pt-BR'&&v.localService)||vs.find(v=>v.lang==='pt-BR')||vs.find(v=>v.lang.startsWith('pt'));if(pt)u.voice=pt;window.speechSynthesis.speak(u);}catch(e){}};
     const vs=window.speechSynthesis.getVoices();
-    if(vs.length)doSpeak();
-    else{window.speechSynthesis.onvoiceschanged=()=>{doSpeak();window.speechSynthesis.onvoiceschanged=null};}
+    if(vs.length)doSpeak();else{window.speechSynthesis.onvoiceschanged=()=>{doSpeak();window.speechSynthesis.onvoiceschanged=null};}
   }catch(e){}
 }
+function speakFallback(text,p){speakBrowserFallback(text,p)}
 
 /* ── DIETA ── */
 function viewDieta(m){
@@ -219,7 +269,7 @@ async function gerarDieta(){
   const btn=document.querySelector('#main .btn-primary');if(btn){btn.textContent='⏳ Gerando…';btn.disabled=true}
   try{
     const dietaSys='Você é nutricionista esportivo especializado em hipertrofia para jovens (17 anos, ~70kg). Monte refeições práticas. Retorne SOMENTE JSON válido.';
-    const txt=await callAbacus([{role:'user',content:`Ingredientes: ${ingr}.\nCrie plano alimentar para hoje com 4-5 refeições. JSON: {refeicoes:[{nome(com horário),itens(lista com porções),kcal}],dica(insight nutricional)}. JSON puro.`}],520,dietaSys);
+    const txt=await callGroq([{role:'user',content:`Ingredientes: ${ingr}.\nCrie plano alimentar para hoje com 4-5 refeições. JSON: {refeicoes:[{nome(com horário),itens(lista com porções),kcal}],dica(insight nutricional)}. JSON puro.`}],520,dietaSys);
     let parsed;try{parsed=JSON.parse(txt.match(/\{[\s\S]*\}/)?.[0]||txt)}catch{parsed={raw:txt,dica:'Plano gerado.'}}
     localStorage.setItem('vtz_dieta_'+todayISO(),JSON.stringify(parsed));
     toast('Plano alimentar gerado!','🥗');addXp(10);go('dieta');
@@ -252,8 +302,8 @@ function viewShape(m){
   </div>`;
 }
 function renderPratoResult(d){return`<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px"><b style="font-size:14px">${esc(d.nome||'Refeição analisada')}</b><span style="font-size:11.5px;color:var(--txt-3)">${esc(d.date)}</span></div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px"><div style="padding:10px;background:rgba(109,94,252,.12);border-radius:10px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--accent-2)">${d.kcal}</div><div style="font-size:11px;color:var(--txt-3);margin-top:2px">kcal total</div></div><div style="padding:10px;background:rgba(33,217,122,.12);border-radius:10px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--green)">${d.proteina}g</div><div style="font-size:11px;color:var(--txt-3);margin-top:2px">proteína</div></div><div style="padding:10px;background:rgba(255,179,64,.12);border-radius:10px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--amber)">${d.carbo}g</div><div style="font-size:11px;color:var(--txt-3);margin-top:2px">carboidrato</div></div><div style="padding:10px;background:rgba(63,216,224,.12);border-radius:10px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:800;color:var(--cyan)">${d.gordura}g</div><div style="font-size:11px;color:var(--txt-3);margin-top:2px">gordura</div></div></div>${d.avaliacao?`<div style="padding:10px 12px;background:rgba(109,94,252,.08);border-radius:10px;font-size:13px;color:var(--accent-2);line-height:1.5">${esc(d.avaliacao)}</div>`:''}<button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="localStorage.removeItem('vtz_prato_result');render()">Limpar</button></div>`}
-async function shapeAnalyze(e){const file=e.target.files[0];if(!file)return;document.getElementById('shapeLoading').style.display='block';const canvas=document.getElementById('shapeCanvas');const img=new Image();img.onload=async()=>{const max=600,scale=Math.min(max/img.width,max/img.height,1);canvas.width=img.width*scale;canvas.height=img.height*scale;canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);const b64=canvas.toDataURL('image/jpeg',.7).split(',')[1];try{const shapeSys='Você é avaliador físico especialista em composição corporal. Analise com critério técnico rigoroso. Retorne SOMENTE JSON válido.';const r=await callAbacus([{role:'user',content:[{type:'text',text:'Analise esta foto de físico. JSON: {score(0-10), label(classificação técnica), zones:[{ic,n,v,c}] 3 zonas, advice(2 frases: 1 ponto forte + 1 prioridade)}. JSON puro.'},{type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64}}]}],400,shapeSys);let parsed;try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}catch{parsed={score:5,label:'análise concluída',zones:[{ic:'💪',n:'Superior',v:'em progresso',c:'var(--amber)'},{ic:'🔥',n:'Core',v:'em progresso',c:'var(--amber)'},{ic:'🦵',n:'Inferior',v:'ok',c:'var(--green)'}],advice:r.slice(0,200)}}parsed.date=new Date().toLocaleDateString('pt-BR');localStorage.setItem('vtz_shape_result',JSON.stringify(parsed));toast('Shape analisado!','🏋️');addXp(15);render();}catch(err){toast('Erro: '+err.message,'⚠️');document.getElementById('shapeLoading').style.display='none';}};img.src=URL.createObjectURL(file);}
-async function pratoAnalyze(e){const file=e.target.files[0];if(!file)return;document.getElementById('pratoLoading').style.display='block';const canvas=document.getElementById('pratoCanvas');const img=new Image();img.onload=async()=>{const max=700,scale=Math.min(max/img.width,max/img.height,1);canvas.width=img.width*scale;canvas.height=img.height*scale;canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);const b64=canvas.toDataURL('image/jpeg',.75).split(',')[1];try{const pratoSys='Você é nutricionista esportivo. Identifique alimentos, estime porções e calcule valores nutricionais. Retorne SOMENTE JSON válido.';const r=await callAbacus([{role:'user',content:[{type:'text',text:'Analise esta foto de prato. JSON: {nome, kcal(total), proteina(g), carbo(g), gordura(g), avaliacao(1-2 frases para atleta de musculação)}. JSON puro.'},{type:'image_url',image_url:{url:'data:image/jpeg;base64,'+b64}}]}],400,pratoSys);let parsed;try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}catch{parsed={nome:'Refeição',kcal:'?',proteina:'?',carbo:'?',gordura:'?',avaliacao:r.slice(0,200)}}parsed.date=new Date().toLocaleDateString('pt-BR');localStorage.setItem('vtz_prato_result',JSON.stringify(parsed));toast('Prato analisado!','🍽️');addXp(10);render();}catch(err){toast('Erro: '+err.message,'⚠️');document.getElementById('pratoLoading').style.display='none';}};img.src=URL.createObjectURL(file);}
+async function shapeAnalyze(e){const file=e.target.files[0];if(!file)return;document.getElementById('shapeLoading').style.display='block';const canvas=document.getElementById('shapeCanvas');const img=new Image();img.onload=async()=>{const max=600,scale=Math.min(max/img.width,max/img.height,1);canvas.width=img.width*scale;canvas.height=img.height*scale;canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);const b64=canvas.toDataURL('image/jpeg',.7).split(',')[1];try{const shapeSys='Você é avaliador físico especialista em composição corporal. Analise com critério técnico rigoroso. Retorne SOMENTE JSON válido.';const r=await callGemini('Analise esta foto de físico. JSON: {score(0-10), label(classificação técnica), zones:[{ic(emoji),n(nome da zona),v(avaliação),c(cor css: var(--green)|var(--amber)|var(--red))}] 3 zonas, advice(2 frases: 1 ponto forte + 1 prioridade)}. JSON puro.',400,shapeSys,[{inlineData:{mimeType:'image/jpeg',data:b64}}]);let parsed;try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}catch{parsed={score:5,label:'análise concluída',zones:[{ic:'💪',n:'Superior',v:'em progresso',c:'var(--amber)'},{ic:'🔥',n:'Core',v:'em progresso',c:'var(--amber)'},{ic:'🦵',n:'Inferior',v:'ok',c:'var(--green)'}],advice:r.slice(0,200)}}parsed.date=new Date().toLocaleDateString('pt-BR');localStorage.setItem('vtz_shape_result',JSON.stringify(parsed));toast('Shape analisado!','🏋️');addXp(15);render();}catch(err){toast('Erro: '+err.message,'⚠️');document.getElementById('shapeLoading').style.display='none';}};img.src=URL.createObjectURL(file);}
+async function pratoAnalyze(e){const file=e.target.files[0];if(!file)return;document.getElementById('pratoLoading').style.display='block';const canvas=document.getElementById('pratoCanvas');const img=new Image();img.onload=async()=>{const max=700,scale=Math.min(max/img.width,max/img.height,1);canvas.width=img.width*scale;canvas.height=img.height*scale;canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);const b64=canvas.toDataURL('image/jpeg',.75).split(',')[1];try{const pratoSys='Você é nutricionista esportivo. Identifique alimentos, estime porções e calcule valores nutricionais. Retorne SOMENTE JSON válido.';const r=await callGemini('Analise esta foto de prato. JSON: {nome, kcal(total), proteina(g), carbo(g), gordura(g), avaliacao(1-2 frases para atleta de musculação)}. JSON puro.',400,pratoSys,[{inlineData:{mimeType:'image/jpeg',data:b64}}]);let parsed;try{parsed=JSON.parse(r.match(/\{[\s\S]*\}/)?.[0]||r)}catch{parsed={nome:'Refeição',kcal:'?',proteina:'?',carbo:'?',gordura:'?',avaliacao:r.slice(0,200)}}parsed.date=new Date().toLocaleDateString('pt-BR');localStorage.setItem('vtz_prato_result',JSON.stringify(parsed));toast('Prato analisado!','🍽️');addXp(10);render();}catch(err){toast('Erro: '+err.message,'⚠️');document.getElementById('pratoLoading').style.display='none';}};img.src=URL.createObjectURL(file);}
 
 /* ── PREDIÇÃO ── */
 function viewPredicao(m){

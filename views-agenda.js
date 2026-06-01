@@ -5,19 +5,12 @@ async function fetchHolidays(){
   const cacheKey='vtz_holidays_'+year;
   const cached=localStorage.getItem(cacheKey);
   if(cached){try{_holidays=JSON.parse(cached);_holidaysLoaded=true;return;}catch(e){}}
-  const key=await getAbacusKey();
-  if(!key)return;
   _holidaysLoaded=true;
-  let locationStr='Brasil';
   try{
-    const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
-    locationStr=`lat=${pos.coords.latitude.toFixed(2)}, lon=${pos.coords.longitude.toFixed(2)} (Brasil)`;
-  }catch(e){}
-  try{
-    const holSys='Você é especialista em calendário brasileiro. Retorne SOMENTE JSON puro, sem texto antes ou depois.';
-    const r=await callAbacus([{role:'user',content:`Localização: ${locationStr}. Liste TODOS os feriados nacionais e pontos facultativos do Brasil para ${year}. JSON array: [{"date":"YYYY-MM-DD","name":"Nome","type":"feriado|facultativo|estadual"}]. Inclua todos os nacionais obrigatórios. JSON puro.`}],900,holSys);
-    const arr=JSON.parse(r.match(/\[[\s\S]*?\]/)?.[0]||'[]');
-    arr.forEach(h=>{if(h.date&&h.name)_holidays[h.date]={name:h.name,type:h.type||'feriado'}});
+    const r=await fetch(`https://brasilapi.com.br/api/feriados/v1/${year}`);
+    if(!r.ok)throw new Error('BrasilAPI '+r.status);
+    const arr=await r.json();
+    arr.forEach(h=>{if(h.date&&h.name)_holidays[h.date]={name:h.name,type:h.type||'national'}});
     localStorage.setItem(cacheKey,JSON.stringify(_holidays));
     if(currentView==='agenda')render();
   }catch(e){console.warn('Holidays fetch failed:',e.message)}

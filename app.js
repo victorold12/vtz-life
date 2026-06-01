@@ -237,6 +237,31 @@ async function callAbacus(messages,maxTokens=500,system=''){
   if(!r.ok){const e=await r.text();throw new Error('Abacus '+r.status+': '+e.slice(0,120));}
   const d=await r.json();return d.choices?.[0]?.message?.content||'';
 }
+/* ── GROQ AI ── */
+async function callGroq(messages,maxTokens=500,system=''){
+  const key=localStorage.getItem('vtz_groq_key');
+  if(!key)throw new Error('Chave Groq não configurada — adicione em Configurações');
+  const msgs=system?[{role:'system',content:system},...messages]:messages;
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:msgs,max_tokens:maxTokens})});
+  if(!r.ok){const e=await r.text();throw new Error('Groq '+r.status+': '+e.slice(0,100));}
+  const d=await r.json();return d.choices?.[0]?.message?.content||'';
+}
+
+/* ── GEMINI AI ── */
+async function callGemini(prompt,maxTokens=500,system='',imageParts=[]){
+  const key=localStorage.getItem('vtz_gemini_key');
+  if(!key)throw new Error('Chave Gemini não configurada — adicione em Configurações');
+  const parts=[...imageParts,{text:prompt}];
+  const body={contents:[{parts}],generationConfig:{maxOutputTokens:maxTokens}};
+  if(system)body.systemInstruction={parts:[{text:system}]};
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.text();throw new Error('Gemini '+r.status+': '+e.slice(0,100));}
+  const d=await r.json();return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+}
+
 function mdToHtml(t){
   if(!t)return'';
   return t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')

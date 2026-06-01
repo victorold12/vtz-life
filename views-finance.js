@@ -114,7 +114,7 @@ async function jarvisFinanceAnalysis(){
   const finSys='Você é consultor financeiro para jovens (17 anos, primeiro emprego). Estruture SEMPRE em 3 blocos: **✅ Pontos fortes**, **⚠️ O que otimizar**, **🎯 Ação desta semana**. Sem introduções. Máx 6 bullets. Direto como CFO.';
   try{
     const taxaPoup=inc>0?((inc-out)/inc*100).toFixed(0):0;
-    const r=await callAbacus([{role:'user',content:`Dados: receitas=R$${inc.toFixed(0)}, gastos=R$${out.toFixed(0)}, saldo=R$${(inc-out).toFixed(0)}, taxa de poupança=${taxaPoup}%, categorias: ${catStr}. Orçamento: R$${S.budget}.`}],280,finSys);
+    const r=await callGroq([{role:'user',content:`Dados: receitas=R$${inc.toFixed(0)}, gastos=R$${out.toFixed(0)}, saldo=R$${(inc-out).toFixed(0)}, taxa de poupança=${taxaPoup}%, categorias: ${catStr}. Orçamento: R$${S.budget}.`}],280,finSys);
     modal(`<h3>🤖 Análise JARVIS — Finanças</h3><p class="ms">Baseado nos seus dados · ${new Date().toLocaleDateString('pt-BR')}</p><div style="font-size:13.5px;line-height:1.7;color:var(--txt-2)">${mdToHtml(r)}</div><div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>`);
   }catch(e){toast('Erro: '+e.message,'⚠️');}
 }

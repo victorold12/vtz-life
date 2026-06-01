@@ -65,7 +65,7 @@ async function coachSend(){
   renderCoachMsgs();
   try{
     const history=coachMsgs.slice(0,-1).slice(-6).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
-    const r=await callAbacus(history,280,coachSys);
+    const r=await callGroq(history,280,coachSys);
     coachMsgs[coachMsgs.length-1]={role:'assistant',content:r};
   }catch(e){coachMsgs[coachMsgs.length-1]={role:'assistant',content:'⚠️ '+e.message};}
   renderCoachMsgs();
