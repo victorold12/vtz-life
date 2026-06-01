@@ -187,3 +187,139 @@ function modal(html){$('#modalBox').innerHTML=html;$('#modalBg').classList.add('
 function closeModal(){$('#modalBg').classList.remove('show')}
 $('#modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal()});
 function emptyState(msg){return`<div class="empty"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div>${msg}</div></div>`}
+
+/* ── STAT CARD ── */
+function statCard(label,val,dt,color,iconColor,iconBg,iconPath){
+  return`<div class="card stat">
+    <div class="ic" style="background:${iconBg}"><svg width="20" height="20" fill="none" stroke="${iconColor}" stroke-width="2" viewBox="0 0 24 24">${iconPath}</svg></div>
+    <div class="lbl">${label}</div>
+    <div class="val" style="color:${safeColor(color)}">${val}</div>
+    <div class="dt" style="color:${safeColor(color)}">${dt}</div>
+  </div>`;
+}
+
+/* ── STATUS BAR ── */
+function renderStatus(){
+  const lvl=lvlOf(S.xp),xpC=S.xp-xpForLvl(lvl),xpN=xpForLvl(lvl+1)-xpForLvl(lvl),pct=Math.round(xpC/xpN*100);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set('stStreak',streakCount());set('stXp',S.xp);set('stLvl',lvl);set('stToday',todayPct()+'%');
+  const bar=document.getElementById('stXpBar');if(bar)bar.style.width=pct+'%';
+}
+
+/* ── NAVIGATION ── */
+function go(view){
+  currentView=view;window.currentView=view;
+  document.querySelectorAll('.nav-item,.mnav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  const titles={dashboard:'Dashboard',tarefas:'Tarefas & Hábitos',agenda:'Agenda',treino:'Treino',financeiro:'Financeiro',missoes:'Missões',foco:'Modo Foco',dieta:'Dieta Inteligente',shape:'Olho do Toji',biblioteca:'Biblioteca VTZ',predicao:'Predição',config:'Configurações'};
+  const pt=document.getElementById('pageTitle');if(pt)pt.textContent=titles[view]||view;
+  render();
+}
+
+function render(){
+  const m=document.getElementById('main');if(!m)return;
+  renderStatus();
+  const views={dashboard:viewDashboard,tarefas:viewTarefas,agenda:viewAgenda,treino:viewTreino,financeiro:viewFinanceiro,missoes:viewMissoes,foco:viewFoco,dieta:viewDieta,shape:viewShape,biblioteca:viewBiblioteca,predicao:viewPredicao,config:viewConfig};
+  const fn=views[currentView];if(fn)fn(m);
+}
+
+/* ── ABACUS AI ── */
+async function getAbacusKey(){
+  const k=localStorage.getItem('vtz_abacus_key')||S?.abacusKey;
+  if(!k){toast('Configure a chave Abacus em Configurações','⚠️');go('config');return null;}
+  return k;
+}
+async function callAbacus(messages,maxTokens=500,system=''){
+  const key=await getAbacusKey();if(!key)throw new Error('Chave Abacus não configurada');
+  const msgs=system?[{role:'system',content:system},...messages]:messages;
+  const r=await fetch('https://routellm.abacus.ai/v1/chat/completions',{method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'route-llm',messages:msgs,max_tokens:maxTokens})});
+  if(!r.ok){const e=await r.text();throw new Error('Abacus '+r.status+': '+e.slice(0,120));}
+  const d=await r.json();return d.choices?.[0]?.message?.content||'';
+}
+function mdToHtml(t){
+  if(!t)return'';
+  return t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/^• (.+)$/gm,'<div class="jli"><span>•</span><span>$1</span></div>')
+    .replace(/^### (.+)$/gm,'<div class="jh">$1</div>')
+    .replace(/^## (.+)$/gm,'<div class="jh">$1</div>')
+    .replace(/\n\n/g,'</p><p class="jp">')
+    .replace(/^(?!<)/gm,'<p class="jp">');
+}
+
+/* ── DASHBOARD ── */
+const QUOTES=[
+  {q:'Disciplina é fazer o que você odeia com a mesma intensidade que faz o que ama.',a:'Tim Grover'},
+  {q:'O começo da sabedoria é o temor ao Senhor.',a:'Provérbios 1'},
+  {q:'Hábitos são os juros compostos do auto-aperfeiçoamento.',a:'James Clear'},
+  {q:'Constância supera intensidade.',a:'VTz Life'},
+  {q:'A riqueza é o que você não gasta — é a opção de comprar coisas que você não compra.',a:'Morgan Housel'},
+  {q:'Quem governa o próprio espírito é melhor do que aquele que conquista uma cidade.',a:'Provérbios 16:32'},
+];
+function viewDashboard(m){
+  const lvl=lvlOf(S.xp);
+  const streak=streakCount();
+  const pct=todayPct();
+  const habDone=S.habits.filter(h=>h.log[todayISO()]).length;
+  const cups=getCups();
+  const score=Math.min(100,Math.round((streak/14*35)+(habDone/Math.max(1,S.habits.length)*35)+(pct*.3)));
+  const ci=Math.floor(Date.now()/86400000)%QUOTES.length;
+  const q=QUOTES[ci];
+  const todayTasks=S.tasks.filter(t=>t.due===todayISO()&&!t.done).slice(0,4);
+  const inc=S.finance.filter(f=>f.type==='in').reduce((a,b)=>a+b.val,0);
+  const out=S.finance.filter(f=>f.type==='out').reduce((a,b)=>a+b.val,0);
+  const ringC=2*Math.PI*54;
+  const ringOffset=ringC*(1-score/100);
+  m.innerHTML=`
+  <div class="section-head"><div><h2>${getGreeting()}, ${esc(S.profile.name.split(' ')[0])} 👋</h2><p>${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}</p></div></div>
+  <div class="stat-row">
+    ${statCard('Streak',streak,'dias seguidos','var(--amber)','var(--amber)','rgba(255,194,77,.13)','<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>')}
+    ${statCard('XP Total',S.xp,'nível '+lvl,'var(--accent-2)','var(--accent-2)','rgba(109,94,252,.13)','<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>')}
+    ${statCard('Tarefas',pct+'%','concluídas hoje','var(--green)','var(--green)','rgba(33,217,122,.13)','<path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>')}
+    ${statCard('Hábitos',habDone+'/'+S.habits.length,'feitos hoje','var(--cyan)','var(--cyan)','rgba(63,216,224,.13)','<path d="M4 9v6M20 9v6M7 6v12M17 6v12M7 12h10"/>')}
+    ${statCard('Saldo',brl(inc-out),'este mês',inc-out>=0?'var(--green)':'var(--red)','var(--accent)','rgba(109,94,252,.13)','<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>')}
+  </div>
+  <div class="dash-grid">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="score-ring">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120" width="138" height="138">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+              <circle cx="60" cy="60" r="54" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${ringC}" stroke-dashoffset="${ringOffset}"/>
+              <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="var(--accent)"/><stop offset="100%" stop-color="var(--cyan)"/></linearGradient></defs>
+            </svg>
+            <div class="rt"><b>${score}</b><s>SCORE</s></div>
+          </div>
+          <div style="flex:1">
+            <div style="font-family:var(--display);font-weight:700;font-size:16px;margin-bottom:10px">Performance do dia</div>
+            ${[['🔥','Streak',streak+' dias'],['✅','Hábitos',habDone+'/'+S.habits.length],['💧','Água',cups+'/8 copos'],['⚡','XP',S.xp]].map(([ic,lb,vl])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="color:var(--txt-3)">${ic} ${lb}</span><b>${vl}</b></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <b style="font-family:var(--display);font-size:15px">📋 Pendente hoje</b>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="go('tarefas')">Ver tudo →</button>
+        </div>
+        ${todayTasks.length?todayTasks.map(t=>`<div class="item"><button class="check" onclick="toggleTask(${t.id})"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></button><div class="it-body"><div class="it-title">${esc(t.title)}</div><div class="it-meta"><span class="tag" style="background:${prioColor[t.prio]}22;color:${prioColor[t.prio]}">${t.prio}</span></div></div></div>`).join(''):emptyState('Sem tarefas pendentes hoje 🎉')}
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="quote">"${esc(q.q)}"<span class="qa-by">— ${esc(q.a)}</span></div>
+      </div>
+      <div class="card">
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:14px">⚡ Ações rápidas</b>
+        <div class="quick-actions">
+          <button class="qa" onclick="go('tarefas');setTimeout(openTask,100)"><div class="qi" style="background:rgba(109,94,252,.15);color:var(--accent)">✅</div>Nova tarefa</button>
+          <button class="qa" onclick="go('financeiro');setTimeout(()=>openFin('out'),100)"><div class="qi" style="background:rgba(255,93,114,.15);color:var(--red)">💸</div>Gasto</button>
+          <button class="qa" onclick="go('treino')"><div class="qi" style="background:rgba(33,217,122,.15);color:var(--green)">💪</div>Treino</button>
+          <button class="qa" onclick="addCup()"><div class="qi" style="background:rgba(63,216,224,.15);color:var(--cyan)">💧</div>+1 Copo água</button>
+          <button class="qa" onclick="go('agenda');setTimeout(openEvent,100)"><div class="qi" style="background:rgba(255,194,77,.15);color:var(--amber)">📅</div>Evento</button>
+          <button class="qa" onclick="go('foco')"><div class="qi" style="background:rgba(139,125,255,.15);color:var(--accent-2)">🎯</div>Modo Foco</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
