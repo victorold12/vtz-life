@@ -59,6 +59,7 @@ function viewConfig(m){
         <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">🎙 Voz — Google Cloud TTS</b>
         <p style="color:var(--txt-3);font-size:12px;margin-bottom:4px">Cascata automática: <b style="color:var(--green)">Studio</b> → <b style="color:var(--cyan)">Neural2</b> → ResponsiveVoice → Browser</p>
         <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">Key grátis em <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent-2)">console.cloud.google.com</a> → APIs → Cloud Text-to-Speech. Sem key = usa voz do browser.</p>
+        <p style="color:var(--amber);font-size:11.5px;margin-bottom:10px">💡 Opcional — sem key usa ElevenLabs ou browser automaticamente</p>
         <div class="frow" style="margin-bottom:10px"><label class="fl">Google Cloud API Key</label><input class="input" id="googleTtsKey" type="password" placeholder="AIza…" value="${esc(localStorage.getItem('vtz_google_tts_key')||'')}"></div>
         <div class="fgrid" style="margin-bottom:10px">
           <div><label class="fl">🌟 Voz Studio (principal)</label>
@@ -74,6 +75,15 @@ function viewConfig(m){
           <input type="range" id="rvRate" min="0.5" max="1.5" step="0.05" value="${localStorage.getItem('vtz_rv_rate')||'0.9'}" oninput="document.getElementById('rateVal').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:6px"></div>
         <div class="frow" style="margin-bottom:12px"><label class="fl">Tom (pitch) — <b id="pitchVal">${localStorage.getItem('vtz_rv_pitch')||'1.0'}</b></label>
           <input type="range" id="rvPitch" min="0.5" max="1.5" step="0.05" value="${localStorage.getItem('vtz_rv_pitch')||'1.0'}" oninput="document.getElementById('pitchVal').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:6px"></div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+          <b style="font-size:13px;display:block;margin-bottom:8px">🎤 ElevenLabs (fallback humanizado)</b>
+          <p style="color:var(--txt-3);font-size:12px;margin-bottom:8px">Grátis 10k chars/mês em <a href="https://elevenlabs.io" target="_blank" style="color:var(--accent-2)">elevenlabs.io</a>. Pode clonar sua própria voz!</p>
+          <div class="fgrid" style="margin-bottom:8px">
+            <div><label class="fl">API Key</label><input class="input" id="elevenKey" type="password" placeholder="sk_…" value="${esc(localStorage.getItem('vtz_eleven_key')||'')}"></div>
+            <div><label class="fl">Voice ID</label><input class="input" id="elevenVoice" placeholder="ID da voz" value="${esc(localStorage.getItem('vtz_eleven_voice')||'pFZP5JQG7iQjIQuC4Bku')}"></div>
+          </div>
+          <p style="color:var(--txt-3);font-size:11.5px;margin-bottom:10px">Voice ID padrão: Lily (multilingual pt-BR). Para clonar sua voz: elevenlabs.io → Voice Lab → crie e copie o ID.</p>
+        </div>
         <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveVoicePrefs()">Salvar voz</button><button class="btn btn-ghost" onclick="previewVoice()">▶ Testar</button></div>
       </div>
       <div class="card">
@@ -103,13 +113,17 @@ function saveVoicePrefs(){
   const gKey=document.getElementById('googleTtsKey')?.value.trim();
   const sVoice=document.getElementById('studioVoice')?.value;
   const nVoice=document.getElementById('neuralVoice')?.value;
+  const eKey=document.getElementById('elevenKey')?.value.trim();
+  const eVoice=document.getElementById('elevenVoice')?.value.trim();
   if(r)localStorage.setItem('vtz_rv_rate',r);
   if(pi)localStorage.setItem('vtz_rv_pitch',pi);
   if(gKey!==undefined)localStorage.setItem('vtz_google_tts_key',gKey);
   if(sVoice)localStorage.setItem('vtz_google_studio_voice',sVoice);
   if(nVoice)localStorage.setItem('vtz_google_neural_voice',nVoice);
-  if(gKey)toast('Voz Google Cloud TTS salva 🎙','✅');
-  else toast('Voz salva — usando browser/ResponsiveVoice','🎙');
+  if(eKey!==undefined)localStorage.setItem('vtz_eleven_key',eKey);
+  if(eVoice)localStorage.setItem('vtz_eleven_voice',eVoice);
+  const active=gKey?'Google TTS':eKey?'ElevenLabs':'browser/ResponsiveVoice';
+  toast('Voz salva — usando '+active,'🎙');
 }
 function previewVoice(){const v=document.getElementById('rvVoice')?.value||getVoicePrefs().voice;const r=parseFloat(document.getElementById('rvRate')?.value||getVoicePrefs().rate);const pi=parseFloat(document.getElementById('rvPitch')?.value||getVoicePrefs().pitch);if(window.responsiveVoice){responsiveVoice.cancel();responsiveVoice.speak('Olá Victor. JARVIS ativo e pronto para te ajudar.',v,{rate:r,pitch:pi,volume:1})}else{speak('Olá Victor. JARVIS ativo.')}}
 
@@ -201,6 +215,8 @@ function getVoicePrefs(){return{
   googleKey:localStorage.getItem('vtz_google_tts_key')||'',
   studioVoice:localStorage.getItem('vtz_google_studio_voice')||'pt-BR-Studio-C',
   neuralVoice:localStorage.getItem('vtz_google_neural_voice')||'pt-BR-Neural2-A',
+  elevenKey:localStorage.getItem('vtz_eleven_key')||'',
+  elevenVoice:localStorage.getItem('vtz_eleven_voice')||'pFZP5JQG7iQjIQuC4Bku',
 }}
 async function _googleTTS(text,voiceName,rate,pitchSemi,key){
   try{
@@ -213,6 +229,20 @@ async function _googleTTS(text,voiceName,rate,pitchSemi,key){
     const d=await r.json();
     if(!d.audioContent)return false;
     new Audio('data:audio/mp3;base64,'+d.audioContent).play();
+    return true;
+  }catch(e){return false;}
+}
+async function speakElevenLabs(text,p){
+  if(!p.elevenKey)return false;
+  try{
+    const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${p.elevenVoice}`,{
+      method:'POST',
+      headers:{'xi-api-key':p.elevenKey,'Content-Type':'application/json','Accept':'audio/mpeg'},
+      body:JSON.stringify({text,model_id:'eleven_multilingual_v2',
+        voice_settings:{stability:0.5,similarity_boost:0.75,speed:p.rate||0.9}})});
+    if(!r.ok)return false;
+    const blob=await r.blob();
+    new Audio(URL.createObjectURL(blob)).play();
     return true;
   }catch(e){return false;}
 }
@@ -234,22 +264,25 @@ function speak(text){
   if(!text)return;
   text=String(text).trim();if(!text)return;
   const p=getVoicePrefs();
+  const rvFallback=()=>{
+    if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
+      try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onerror:()=>speakBrowserFallback(text,p)});return;}catch(e){}
+    }
+    speakBrowserFallback(text,p);
+  };
+  /* Cascata: Google TTS → ElevenLabs → ResponsiveVoice → browser */
   if(p.googleKey){
-    speakGoogle(text,p).then(ok=>{
-      if(!ok){
-        if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
-          try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onerror:()=>speakBrowserFallback(text,p)});return;}catch(e){}
-        }
-        speakBrowserFallback(text,p);
-      }
-    }).catch(()=>speakBrowserFallback(text,p));
+    speakGoogle(text,p).then(ok=>{if(!ok){
+      if(p.elevenKey)speakElevenLabs(text,p).then(ok2=>{if(!ok2)rvFallback()}).catch(rvFallback);
+      else rvFallback();
+    }}).catch(()=>rvFallback());
     return;
   }
-  if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
-    try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onerror:()=>speakBrowserFallback(text,p)});return;}
-    catch(e){}
+  if(p.elevenKey){
+    speakElevenLabs(text,p).then(ok=>{if(!ok)rvFallback()}).catch(rvFallback);
+    return;
   }
-  speakBrowserFallback(text,p);
+  rvFallback();
 }
 function speakBrowserFallback(text,p){
   if(!window.speechSynthesis)return;
