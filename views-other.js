@@ -56,16 +56,20 @@ function viewConfig(m){
         <div style="display:flex;gap:9px"><button class="btn btn-primary" onclick="saveGeminiKey()">Salvar</button><button class="btn btn-ghost" onclick="testGeminiKey()">Testar</button></div>
       </div>
       <div class="card">
-        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">🎙 Voz — Azure TTS</b>
-        <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">500k chars/mês grátis. Crie em <a href="https://portal.azure.com" target="_blank" style="color:var(--accent-2)">portal.azure.com</a> → Speech Service. Sem key = usa voz do browser.</p>
+        <b style="font-family:var(--display);font-size:15px;display:block;margin-bottom:6px">🎙 Voz — Google Cloud TTS</b>
+        <p style="color:var(--txt-3);font-size:12px;margin-bottom:4px">Cascata automática: <b style="color:var(--green)">Studio</b> → <b style="color:var(--cyan)">Neural2</b> → ResponsiveVoice → Browser</p>
+        <p style="color:var(--txt-3);font-size:12px;margin-bottom:12px">Key grátis em <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent-2)">console.cloud.google.com</a> → APIs → Cloud Text-to-Speech. Sem key = usa voz do browser.</p>
+        <div class="frow" style="margin-bottom:10px"><label class="fl">Google Cloud API Key</label><input class="input" id="googleTtsKey" type="password" placeholder="AIza…" value="${esc(localStorage.getItem('vtz_google_tts_key')||'')}"></div>
         <div class="fgrid" style="margin-bottom:10px">
-          <div><label class="fl">API Key</label><input class="input" id="azureTtsKey" type="password" placeholder="sua-key-azure" value="${esc(localStorage.getItem('vtz_azure_tts_key')||'')}"></div>
-          <div><label class="fl">Região</label><input class="input" id="azureRegion" placeholder="eastus" value="${esc(localStorage.getItem('vtz_azure_tts_region')||'eastus')}"></div>
+          <div><label class="fl">🌟 Voz Studio (principal)</label>
+            <select class="input" id="studioVoice">
+              ${[['pt-BR-Studio-C','Feminina — Studio C'],['pt-BR-Studio-B','Masculina — Studio B']].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_google_studio_voice')||'pt-BR-Studio-C')===v?'selected':''}>${l}</option>`).join('')}
+            </select></div>
+          <div><label class="fl">⚡ Voz Neural2 (fallback)</label>
+            <select class="input" id="neuralVoice">
+              ${[['pt-BR-Neural2-A','Feminina A'],['pt-BR-Neural2-B','Masculina B'],['pt-BR-Neural2-C','Feminina C'],['pt-BR-Neural2-D','Masculina D'],['pt-BR-Neural2-E','Feminina E']].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_google_neural_voice')||'pt-BR-Neural2-A')===v?'selected':''}>${l}</option>`).join('')}
+            </select></div>
         </div>
-        <div class="frow" style="margin-bottom:10px"><label class="fl">Voz</label>
-          <select class="input" id="azureVoice">
-            ${[['pt-BR-FranciscaNeural','🇧🇷 Francisca (feminina) — padrão'],['pt-BR-AntonioNeural','🇧🇷 Antonio (masculino)'],['pt-BR-BrendaNeural','🇧🇷 Brenda (feminina)'],['pt-BR-DonatoNeural','🇧🇷 Donato (masculino)'],['pt-BR-GiovannaNeural','🇧🇷 Giovanna (feminina)'],['pt-BR-HumbertoNeural','🇧🇷 Humberto (masculino)'],['pt-BR-LeticiaNeural','🇧🇷 Leticia (feminina)'],['pt-BR-ThalitaNeural','🇧🇷 Thalita (feminina)']].map(([v,l])=>`<option value="${v}" ${(localStorage.getItem('vtz_azure_voice')||'pt-BR-FranciscaNeural')===v?'selected':''}>${l}</option>`).join('')}
-          </select></div>
         <div class="frow" style="margin-bottom:10px"><label class="fl">Velocidade — <b id="rateVal">${localStorage.getItem('vtz_rv_rate')||'0.9'}</b>×</label>
           <input type="range" id="rvRate" min="0.5" max="1.5" step="0.05" value="${localStorage.getItem('vtz_rv_rate')||'0.9'}" oninput="document.getElementById('rateVal').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:6px"></div>
         <div class="frow" style="margin-bottom:12px"><label class="fl">Tom (pitch) — <b id="pitchVal">${localStorage.getItem('vtz_rv_pitch')||'1.0'}</b></label>
@@ -96,15 +100,16 @@ function saveGeminiKey(){const k=document.getElementById('geminiKey')?.value.tri
 async function testGeminiKey(){toast('Testando…','⏳');try{const r=await callGemini('Responda apenas: OK',20);toast('Gemini OK: '+r.slice(0,20),'✅')}catch(e){toast('Erro: '+e.message,'❌')}}
 function saveVoicePrefs(){
   const r=document.getElementById('rvRate')?.value,pi=document.getElementById('rvPitch')?.value;
-  const azKey=document.getElementById('azureTtsKey')?.value.trim();
-  const azReg=document.getElementById('azureRegion')?.value.trim();
-  const azVoice=document.getElementById('azureVoice')?.value;
+  const gKey=document.getElementById('googleTtsKey')?.value.trim();
+  const sVoice=document.getElementById('studioVoice')?.value;
+  const nVoice=document.getElementById('neuralVoice')?.value;
   if(r)localStorage.setItem('vtz_rv_rate',r);
   if(pi)localStorage.setItem('vtz_rv_pitch',pi);
-  if(azKey!==undefined)localStorage.setItem('vtz_azure_tts_key',azKey);
-  if(azReg)localStorage.setItem('vtz_azure_tts_region',azReg);
-  if(azVoice)localStorage.setItem('vtz_azure_voice',azVoice);
-  toast('Configurações de voz salvas','🎙');
+  if(gKey!==undefined)localStorage.setItem('vtz_google_tts_key',gKey);
+  if(sVoice)localStorage.setItem('vtz_google_studio_voice',sVoice);
+  if(nVoice)localStorage.setItem('vtz_google_neural_voice',nVoice);
+  if(gKey)toast('Voz Google Cloud TTS salva 🎙','✅');
+  else toast('Voz salva — usando browser/ResponsiveVoice','🎙');
 }
 function previewVoice(){const v=document.getElementById('rvVoice')?.value||getVoicePrefs().voice;const r=parseFloat(document.getElementById('rvRate')?.value||getVoicePrefs().rate);const pi=parseFloat(document.getElementById('rvPitch')?.value||getVoicePrefs().pitch);if(window.responsiveVoice){responsiveVoice.cancel();responsiveVoice.speak('Olá Victor. JARVIS ativo e pronto para te ajudar.',v,{rate:r,pitch:pi,volume:1})}else{speak('Olá Victor. JARVIS ativo.')}}
 
@@ -193,34 +198,51 @@ function getVoicePrefs(){return{
   voice:localStorage.getItem('vtz_rv_voice')||'Brazilian Portuguese Female',
   rate:parseFloat(localStorage.getItem('vtz_rv_rate')||'0.9'),
   pitch:parseFloat(localStorage.getItem('vtz_rv_pitch')||'1'),
-  azureKey:localStorage.getItem('vtz_azure_tts_key')||'',
-  azureRegion:localStorage.getItem('vtz_azure_tts_region')||'eastus',
-  azureVoice:localStorage.getItem('vtz_azure_voice')||'pt-BR-FranciscaNeural',
+  googleKey:localStorage.getItem('vtz_google_tts_key')||'',
+  studioVoice:localStorage.getItem('vtz_google_studio_voice')||'pt-BR-Studio-C',
+  neuralVoice:localStorage.getItem('vtz_google_neural_voice')||'pt-BR-Neural2-A',
 }}
-async function speakAzure(text,p){
-  if(!p.azureKey)return false;
-  const rate=Math.round((p.rate-1)*100);
-  const pitch=Math.round((p.pitch-1)*50);
-  const escaped=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
-  const ssml=`<speak version='1.0' xml:lang='pt-BR'><voice name='${p.azureVoice}'><prosody rate='${rate>=0?'+':''}${rate}%' pitch='${pitch>=0?'+':''}${pitch}%'>${escaped}</prosody></voice></speak>`;
+async function _googleTTS(text,voiceName,rate,pitchSemi,key){
   try{
-    const r=await fetch(`https://${p.azureRegion}.tts.speech.microsoft.com/cognitiveservices/v1`,{
-      method:'POST',
-      headers:{'Ocp-Apim-Subscription-Key':p.azureKey,'Content-Type':'application/ssml+xml','X-Microsoft-OutputFormat':'audio-24khz-48kbitrate-mono-mp3'},
-      body:ssml});
+    const r=await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${key}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:{text},voice:{languageCode:'pt-BR',name:voiceName},
+        audioConfig:{audioEncoding:'MP3',speakingRate:rate,pitch:pitchSemi}})});
+    if(r.status===429)return'quota';
     if(!r.ok)return false;
-    const blob=await r.blob();
-    const audio=new Audio(URL.createObjectURL(blob));
-    audio.play();
+    const d=await r.json();
+    if(!d.audioContent)return false;
+    new Audio('data:audio/mp3;base64,'+d.audioContent).play();
     return true;
   }catch(e){return false;}
+}
+async function speakGoogle(text,p){
+  if(!p.googleKey)return false;
+  const rate=p.rate;
+  const pitch=(p.pitch-1)*20;
+  const month=new Date().toISOString().slice(0,7);
+  const studioGone=localStorage.getItem('vtz_studio_quota_month')===month;
+  if(!studioGone){
+    const r=await _googleTTS(text,p.studioVoice,rate,pitch,p.googleKey);
+    if(r===true)return true;
+    if(r==='quota'){localStorage.setItem('vtz_studio_quota_month',month);toast('Studio esgotado — usando Neural2 automaticamente','🎙');}
+  }
+  const r2=await _googleTTS(text,p.neuralVoice,rate,pitch,p.googleKey);
+  return r2===true;
 }
 function speak(text){
   if(!text)return;
   text=String(text).trim();if(!text)return;
   const p=getVoicePrefs();
-  if(p.azureKey){
-    speakAzure(text,p).then(ok=>{if(!ok)speakBrowserFallback(text,p)}).catch(()=>speakBrowserFallback(text,p));
+  if(p.googleKey){
+    speakGoogle(text,p).then(ok=>{
+      if(!ok){
+        if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
+          try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onerror:()=>speakBrowserFallback(text,p)});return;}catch(e){}
+        }
+        speakBrowserFallback(text,p);
+      }
+    }).catch(()=>speakBrowserFallback(text,p));
     return;
   }
   if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
