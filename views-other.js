@@ -191,9 +191,21 @@ function speakBrowserFallback(text,p){
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
     u.lang='pt-BR';u.rate=p?.rate||0.9;u.pitch=p?.pitch||1;u.volume=1;
-    const doSpeak=()=>{try{const vs=window.speechSynthesis.getVoices();const pt=vs.find(v=>v.lang==='pt-BR'&&v.localService)||vs.find(v=>v.lang==='pt-BR')||vs.find(v=>v.lang.startsWith('pt'));if(pt)u.voice=pt;window.speechSynthesis.speak(u);}catch(e){}};
+    const pickVoice=()=>{
+      const vs=window.speechSynthesis.getVoices();
+      const v=
+        vs.find(v=>v.lang==='pt-BR'&&v.name.includes('Google'))||   // Google Neural (Chrome)
+        vs.find(v=>v.lang==='pt-BR'&&v.name.includes('Neural'))||   // Microsoft Neural (Edge)
+        vs.find(v=>v.lang==='pt-BR'&&v.name.includes('Francisca'))|| // Microsoft Francisca
+        vs.find(v=>v.lang==='pt-BR'&&v.localService)||
+        vs.find(v=>v.lang==='pt-BR')||
+        vs.find(v=>v.lang.startsWith('pt'));
+      if(v)u.voice=v;
+      window.speechSynthesis.speak(u);
+    };
     const vs=window.speechSynthesis.getVoices();
-    if(vs.length)doSpeak();else{window.speechSynthesis.onvoiceschanged=()=>{doSpeak();window.speechSynthesis.onvoiceschanged=null};}
+    if(vs.length)pickVoice();
+    else window.speechSynthesis.onvoiceschanged=()=>{window.speechSynthesis.onvoiceschanged=null;pickVoice();};
   }catch(e){}
 }
 function speakFallback(text,p){speakBrowserFallback(text,p)}
