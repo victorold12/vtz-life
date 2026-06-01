@@ -218,7 +218,7 @@ function go(view){
 function render(){
   const m=document.getElementById('main');if(!m)return;
   renderStatus();
-  const views={dashboard:viewDashboard,tarefas:viewTarefas,agenda:viewAgenda,treino:viewTreino,financeiro:viewFinanceiro,missoes:viewMissoes,foco:viewFoco,dieta:viewDieta,shape:viewShape,biblioteca:viewBiblioteca,predicao:viewPredicao,config:viewConfig};
+  const views={dashboard:viewDashboard,tarefas:viewTarefas,agenda:viewAgenda,treino:viewTreino,financeiro:viewFinance,missoes:viewMissoes,foco:viewFoco,dieta:viewDieta,shape:viewShape,biblioteca:viewBiblioteca,predicao:viewPredicao,config:viewConfig};
   const fn=views[currentView];if(fn)fn(m);
 }
 
