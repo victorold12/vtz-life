@@ -190,17 +190,11 @@ function speak(text){
   if(!text)return;
   text=String(text).trim();if(!text)return;
   const p=getVoicePrefs();
-  const tryRV=()=>{
-    if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
-      try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onerror:()=>speakBrowserFallback(text,p)});return true;}
-      catch(e){}
-    }
-    return false;
-  };
-  if(!tryRV()){
-    /* ResponsiveVoice ainda carregando — tenta após 800ms */
-    setTimeout(()=>{if(!tryRV())speakBrowserFallback(text,p);},800);
+  if(window.responsiveVoice&&typeof responsiveVoice.speak==='function'){
+    try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1});return;}
+    catch(e){}
   }
+  speakBrowserFallback(text,p);
 }
 function speakBrowserFallback(text,p){
   if(!window.speechSynthesis)return;
