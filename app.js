@@ -249,29 +249,6 @@ async function callGroq(messages,maxTokens=500,system=''){
   const d=await r.json();return d.choices?.[0]?.message?.content||'';
 }
 
-/* ── GEMINI AI ── */
-async function callGemini(prompt,maxTokens=500,system='',imageParts=[]){
-  const key=localStorage.getItem('vtz_gemini_key');
-  if(!key)throw new Error('Chave Gemini não configurada — adicione em Configurações');
-  const parts=[...imageParts,{text:prompt}];
-  const body={contents:[{parts}],generationConfig:{maxOutputTokens:maxTokens}};
-  if(system)body.systemInstruction={parts:[{text:system}]};
-  const models=['gemini-2.0-flash','gemini-1.5-flash','gemini-2.0-flash-lite'];
-  for(let attempt=0;attempt<2;attempt++){
-    for(const model of models){
-      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{
-        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if(r.status===429){
-        if(attempt===0){await new Promise(res=>setTimeout(res,3000));break;}
-        continue;
-      }
-      if(r.status===404)continue;
-      if(!r.ok){const e=await r.text();throw new Error('Gemini '+r.status+': '+e.slice(0,100));}
-      const d=await r.json();return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    }
-  }
-  throw new Error('Gemini indisponível — tente novamente em alguns segundos');
-}
 
 function mdToHtml(t){
   if(!t)return'';

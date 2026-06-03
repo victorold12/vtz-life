@@ -50,10 +50,69 @@ function renderAnalysis(a){
 }
 function playerCard(){const b=findBook(ttsState.bookId);if(!b)return'';return`<div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(109,94,252,.12),var(--bg))"><div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;border-radius:12px;background:var(--accent);display:grid;place-items:center;font-size:22px">📚</div><div style="flex:1"><b style="font-family:var(--display)">${esc(b.title)}</b><div style="font-size:12.5px;color:var(--txt-3)">${esc(b.author)}</div></div><div style="display:flex;gap:8px"><button class="btn ${ttsState.playing?'btn-ghost':'btn-primary'}" onclick="${ttsState.playing?'ttsPause()':'ttsPlay()'}">${ttsState.playing?'⏸ Pausar':'▶ Ouvir'}</button><button class="btn btn-ghost" onclick="ttsStop()">✕ Parar</button></div></div></div>`}
 function openBook(id){ttsState.bookId=id;ttsState.playing=false;ttsState.pos=0;render()}
-function ttsReaderPlay(id){const b=S.ebooks.find(x=>x.id===id);if(!b)return;ttsState.bookId=id;ttsState.playing=true;ttsState.pos=0;render();const plain=(b.sections||[]).map(s=>s.title+'. '+s.content).join(' ');const p=getVoicePrefs();if(window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(plain,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onend:()=>{ttsState.playing=false;render()}});return}catch(e){}}const u=new SpeechSynthesisUtterance(plain);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.onend=()=>{ttsState.playing=false;render()};window.speechSynthesis.speak(u);}
-function ttsPlay(){const b=findBook(ttsState.bookId);if(!b)return;ttsState.playing=true;render();const p=getVoicePrefs();const chunk=(b.content||'').slice(ttsState.pos);if(window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(chunk,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onend:()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render()}});return}catch(e){}}const u=new SpeechSynthesisUtterance(chunk);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.onend=()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render()};u.onboundary=e=>{ttsState.pos=e.charIndex;localStorage.setItem('vtz_book_prog_'+b.id,Math.round(ttsState.pos/(b.content||'').length*100))};window.speechSynthesis.speak(u);}
-function ttsPause(){if(window.responsiveVoice)responsiveVoice.pause();window.speechSynthesis.pause();ttsState.playing=false;render()}
-function ttsStop(){if(window.responsiveVoice)responsiveVoice.cancel();window.speechSynthesis.cancel();ttsState.playing=false;ttsState.bookId=null;render()}
+
+let _elevenAudio=null;
+async function elevenLabsSpeak(text){
+  const key=localStorage.getItem('vtz_elevenlabs_key');
+  if(!key)throw new Error('Chave ElevenLabs não configurada — adicione em Configurações');
+  const voiceId=localStorage.getItem('vtz_elevenlabs_voice_id')||'pNInz6obpgDQGcFmaJgB';
+  const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','xi-api-key':key},
+    body:JSON.stringify({text:text.slice(0,5000),model_id:'eleven_multilingual_v2',voice_settings:{stability:0.5,similarity_boost:0.75}})
+  });
+  if(!r.ok){const e=await r.text();throw new Error('ElevenLabs '+r.status+': '+e.slice(0,80));}
+  const blob=await r.blob();
+  const url=URL.createObjectURL(blob);
+  if(_elevenAudio){_elevenAudio.pause();try{URL.revokeObjectURL(_elevenAudio.src)}catch(e){}}
+  _elevenAudio=new Audio(url);
+  await _elevenAudio.play();
+  return _elevenAudio;
+}
+
+function ttsReaderPlay(id){
+  const b=S.ebooks.find(x=>x.id===id);if(!b)return;
+  ttsState.bookId=id;ttsState.playing=true;ttsState.pos=0;render();
+  const plain=(b.sections||[]).map(s=>s.title+'. '+s.content).join(' ');
+  const onEnd=()=>{ttsState.playing=false;render()};
+  if(localStorage.getItem('vtz_elevenlabs_key')){
+    elevenLabsSpeak(plain).then(audio=>{audio.onended=onEnd;}).catch(e=>{toast('ElevenLabs: '+e.message,'⚠️');ttsState.playing=false;render();});
+    return;
+  }
+  const p=getVoicePrefs();
+  if(window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(plain,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onend:onEnd});return}catch(e){}}
+  const u=new SpeechSynthesisUtterance(plain);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.onend=onEnd;window.speechSynthesis.speak(u);
+}
+
+function ttsPlay(){
+  const b=findBook(ttsState.bookId);if(!b)return;
+  ttsState.playing=true;render();
+  const chunk=(b.content||'').slice(ttsState.pos);
+  const onEnd=()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render()};
+  if(localStorage.getItem('vtz_elevenlabs_key')){
+    elevenLabsSpeak(chunk).then(audio=>{audio.onended=onEnd;}).catch(e=>{toast('ElevenLabs: '+e.message,'⚠️');ttsState.playing=false;render();});
+    return;
+  }
+  const p=getVoicePrefs();
+  if(window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(chunk,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onend:onEnd});return}catch(e){}}
+  const u=new SpeechSynthesisUtterance(chunk);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.onend=onEnd;
+  u.onboundary=e=>{ttsState.pos=e.charIndex;localStorage.setItem('vtz_book_prog_'+b.id,Math.round(ttsState.pos/(b.content||'').length*100))};
+  window.speechSynthesis.speak(u);
+}
+
+function ttsPause(){
+  if(_elevenAudio&&!_elevenAudio.paused)_elevenAudio.pause();
+  if(window.responsiveVoice)try{responsiveVoice.pause()}catch(e){}
+  window.speechSynthesis.pause();
+  ttsState.playing=false;render();
+}
+
+function ttsStop(){
+  if(_elevenAudio){_elevenAudio.pause();try{URL.revokeObjectURL(_elevenAudio.src)}catch(e){}_elevenAudio=null;}
+  if(window.responsiveVoice)try{responsiveVoice.cancel()}catch(e){}
+  window.speechSynthesis.cancel();
+  ttsState.playing=false;ttsState.bookId=null;render();
+}
 let _ebookRawText='';
 function openAddEbook(){
   _ebookRawText='';_pdfText='';_ebookTab='fmt';
