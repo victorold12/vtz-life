@@ -51,6 +51,9 @@ const VTzVoice = (() => {
   function setRate(r)  { localStorage.setItem(STORAGE_KEYS.rate,  r); }
   function setPitch(p) { localStorage.setItem(STORAGE_KEYS.pitch, p); }
 
+  const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+
   /* ── FALLBACK: WEB SPEECH API (nativa do navegador) ── */
   function speakBrowser(text, prefs) {
     if (!window.speechSynthesis) return;
@@ -61,26 +64,17 @@ const VTzVoice = (() => {
       u.rate   = prefs.rate;
       u.pitch  = prefs.pitch;
       u.volume = 1;
-
-      const pickAndSpeak = () => {
-        const voices = window.speechSynthesis.getVoices();
-        const preferred =
-          voices.find(v => v.lang === 'pt-BR' && v.name.includes('Google'))    ||
-          voices.find(v => v.lang === 'pt-BR' && v.name.includes('Neural'))    ||
-          voices.find(v => v.lang === 'pt-BR' && v.name.includes('Francisca')) ||
-          voices.find(v => v.lang === 'pt-BR' && v.localService)               ||
-          voices.find(v => v.lang === 'pt-BR')                                  ||
-          voices.find(v => v.lang.startsWith('pt'));
-        if (preferred) u.voice = preferred;
-        window.speechSynthesis.speak(u);
-      };
-
-      const loaded = window.speechSynthesis.getVoices();
-      if (loaded.length) pickAndSpeak();
-      else window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null;
-        pickAndSpeak();
-      };
+      /* Seleciona voz disponível — fala imediatamente (necessário no iOS) */
+      const voices = window.speechSynthesis.getVoices();
+      const preferred =
+        voices.find(v => v.lang === 'pt-BR' && v.name.includes('Google'))    ||
+        voices.find(v => v.lang === 'pt-BR' && v.name.includes('Neural'))    ||
+        voices.find(v => v.lang === 'pt-BR' && v.name.includes('Francisca')) ||
+        voices.find(v => v.lang === 'pt-BR' && v.localService)               ||
+        voices.find(v => v.lang === 'pt-BR')                                  ||
+        voices.find(v => v.lang.startsWith('pt'));
+      if (preferred) u.voice = preferred;
+      window.speechSynthesis.speak(u);
     } catch (e) {
       console.warn('[VTzVoice] Browser TTS error:', e);
     }
@@ -91,8 +85,8 @@ const VTzVoice = (() => {
     if (!text) return;
     const p = getPrefs();
 
-    /* ResponsiveVoice (vozes neurais Google — melhor qualidade) */
-    if (window.responsiveVoice) {
+    /* ResponsiveVoice — desabilitado no iOS (bloqueia áudio sem gesto) */
+    if (!_isIOS && window.responsiveVoice) {
       try {
         responsiveVoice.cancel();
         responsiveVoice.speak(text, p.voice, {
