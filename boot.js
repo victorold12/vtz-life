@@ -70,34 +70,40 @@ async function elevenLabsSpeak(text){
   return _elevenAudio;
 }
 
+function _ttsSpeakNative(text,p,onEnd){
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+  if(!isIOS&&window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(text,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onend:onEnd});return}catch(e){}}
+  const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.onend=onEnd;
+  const vs=window.speechSynthesis.getVoices();
+  const v=vs.find(v=>v.lang==='pt-BR'&&v.name.includes('Google'))||vs.find(v=>v.lang==='pt-BR'&&v.name.includes('Neural'))||vs.find(v=>v.lang==='pt-BR')||vs.find(v=>v.lang.startsWith('pt'));
+  if(v)u.voice=v;
+  window.speechSynthesis.speak(u);
+}
+
 function ttsReaderPlay(id){
   const b=S.ebooks.find(x=>x.id===id);if(!b)return;
   ttsState.bookId=id;ttsState.playing=true;ttsState.pos=0;render();
   const plain=(b.sections||[]).map(s=>s.title+'. '+s.content).join(' ');
+  const p=getVoicePrefs();
   const onEnd=()=>{ttsState.playing=false;render()};
   if(localStorage.getItem('vtz_elevenlabs_key')){
-    elevenLabsSpeak(plain).then(audio=>{audio.onended=onEnd;}).catch(e=>{toast('ElevenLabs: '+e.message,'⚠️');ttsState.playing=false;render();});
+    elevenLabsSpeak(plain).then(audio=>{audio.onended=onEnd;}).catch(()=>{_ttsSpeakNative(plain,p,onEnd);});
     return;
   }
-  const p=getVoicePrefs();
-  if(window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(plain,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onend:onEnd});return}catch(e){}}
-  const u=new SpeechSynthesisUtterance(plain);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.onend=onEnd;window.speechSynthesis.speak(u);
+  _ttsSpeakNative(plain,p,onEnd);
 }
 
 function ttsPlay(){
   const b=findBook(ttsState.bookId);if(!b)return;
   ttsState.playing=true;render();
   const chunk=(b.content||'').slice(ttsState.pos);
+  const p=getVoicePrefs();
   const onEnd=()=>{ttsState.playing=false;localStorage.setItem('vtz_book_prog_'+b.id,'100');render()};
   if(localStorage.getItem('vtz_elevenlabs_key')){
-    elevenLabsSpeak(chunk).then(audio=>{audio.onended=onEnd;}).catch(e=>{toast('ElevenLabs: '+e.message,'⚠️');ttsState.playing=false;render();});
+    elevenLabsSpeak(chunk).then(audio=>{audio.onended=onEnd;}).catch(()=>{_ttsSpeakNative(chunk,p,onEnd);});
     return;
   }
-  const p=getVoicePrefs();
-  if(window.responsiveVoice){try{responsiveVoice.cancel();responsiveVoice.speak(chunk,p.voice,{rate:p.rate,pitch:p.pitch,volume:1,onend:onEnd});return}catch(e){}}
-  const u=new SpeechSynthesisUtterance(chunk);u.lang='pt-BR';u.rate=p.rate;u.pitch=p.pitch;u.onend=onEnd;
-  u.onboundary=e=>{ttsState.pos=e.charIndex;localStorage.setItem('vtz_book_prog_'+b.id,Math.round(ttsState.pos/(b.content||'').length*100))};
-  window.speechSynthesis.speak(u);
+  _ttsSpeakNative(chunk,p,onEnd);
 }
 
 function ttsPause(){
